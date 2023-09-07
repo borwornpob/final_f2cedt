@@ -1,19 +1,28 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const fetch = require("node-fetch");
+const axios = require("axios");
 require("dotenv").config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+// User Schema and Model
+const userSchema = new mongoose.Schema({
+    name: String,
+    uid: String,
+});
+const User = mongoose.model("User", userSchema);
+
 const battleRoomSchema = new mongoose.Schema({
     roomId: String,
+    problemId: String, // Added this field to link a room to a problem
     creator: String,
     opponent: String,
     active: Boolean,
 });
+const BattleRoom = mongoose.model("BattleRoom", battleRoomSchema);
 
 const problemSchema = new mongoose.Schema({
     title: String,
@@ -27,14 +36,34 @@ const problemSchema = new mongoose.Schema({
     ],
     solution: String,
 });
-
-const BattleRoom = mongoose.model("BattleRoom", battleRoomSchema);
 const Problem = mongoose.model("Problem", problemSchema);
 
+// Register Endpoint
+app.post("/register", async (req, res) => {
+    const { name } = req.body;
+    const uid = Math.random().toString(36).substring(2, 10);
+    const newUser = new User({ name, uid });
+    await newUser.save();
+    res.json({ uid });
+});
+
+// Login Endpoint
+app.post("/login", async (req, res) => {
+    const { name } = req.body;
+    const user = await User.findOne({ name });
+    if (user) {
+        res.json({ uid: user.uid });
+    } else {
+        res.status(404).send("User not found");
+    }
+});
+
+// Create Battle Endpoint
 app.post("/create-battle", async (req, res) => {
     const newRoomId = Math.random().toString(36).substring(2, 9);
     const newBattleRoom = new BattleRoom({
         roomId: newRoomId,
+        problemId: req.body.problemId,
         creator: req.body.name,
         active: true,
     });
@@ -42,6 +71,7 @@ app.post("/create-battle", async (req, res) => {
     res.json({ roomId: newRoomId });
 });
 
+// Join Battle Endpoint
 app.post("/join-battle", async (req, res) => {
     const roomIdToJoin = req.body.roomId;
     const battleRoom = await BattleRoom.findOne({
@@ -58,32 +88,51 @@ app.post("/join-battle", async (req, res) => {
     }
 });
 
+// List Active Battles
+app.get("/active-battles", async (req, res) => {
+    const activeBattles = await BattleRoom.find({ active: true });
+    res.json(activeBattles);
+});
+
+// Get Problem by ID
 app.get("/problems/:id", async (req, res) => {
-    const problem = await Problem.findById(req.params.id);
-    if (problem) {
+    try {
+        const problem = await Problem.findById(req.params.id);
         res.json(problem);
-    } else {
+    } catch {
         res.status(404).send("Problem not found");
     }
 });
 
+// List all Problems
+app.get("/problems", async (req, res) => {
+    const problems = await Problem.find({});
+    res.json(problems);
+});
+
+// Submit Solution
 const submitSubmission = async (code, languageId, input, expectedOutput) => {
-    const judge0BaseUrl = "http://54.175.132.186:2358/submissions";
+    const judge0BaseUrl =
+        "http://54.175.132.186:2358/submissions?base64_encoded=false&wait=true";
     const data = {
         source_code: code,
         language_id: languageId,
         stdin: input,
         expected_output: expectedOutput,
     };
-    const response = await fetch(judge0BaseUrl, {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-    const jsonResponse = await response.json();
-    return jsonResponse?.status?.description === "Accepted";
+
+    try {
+        const response = await axios.post(judge0BaseUrl, data, {
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        return response.data?.status?.description === "Accepted";
+    } catch (error) {
+        console.error("Error submitting the solution:", error);
+        return false;
+    }
 };
 
 app.post("/submit-solution", async (req, res) => {
@@ -95,10 +144,18 @@ app.post("/submit-solution", async (req, res) => {
     }
 
     const allTestCasesPassed = await Promise.all(
-        problem.testCases.map((testCase) =>
-            submitSubmission(code, languageId, testCase.input, testCase.output)
-        )
+        problem.testCases.map(async (testCase) => {
+            console.log(testCase.input, testCase.output);
+            return await submitSubmission(
+                code,
+                languageId,
+                testCase.input,
+                testCase.output
+            );
+        })
     );
+
+    console.log(allTestCasesPassed);
 
     if (allTestCasesPassed.every((result) => result)) {
         const battleRoom = await BattleRoom.findOne({ roomId });
@@ -113,14 +170,26 @@ app.post("/submit-solution", async (req, res) => {
     }
 });
 
+// Delete Battle Endpoint
+app.delete("/delete-battle/:roomId", async (req, res) => {
+    await BattleRoom.findOneAndDelete({ roomId: req.params.roomId });
+    res.status(200).send("Deleted successfully");
+});
+
+// Delete User Endpoint
+app.delete("/delete-user/:uid", async (req, res) => {
+    await User.findOneAndDelete({ uid: req.params.uid });
+    res.status(200).send("Deleted successfully");
+});
+
 mongoose
     .connect("mongodb://localhost:27017/codingBattle", {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
     .then(() => {
-        app.listen(process.env.PORT, () => {
-            console.log(`Server is listening on port ${process.env.PORT}`);
+        app.listen(5001, () => {
+            console.log(`Server is listening on port 5001`);
         });
     })
     .catch((error) => console.log("Error connecting to MongoDB:", error));
