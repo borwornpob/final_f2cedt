@@ -22,7 +22,7 @@ const battleRoomSchema = new mongoose.Schema({
     opponent: String,
     active: Boolean,
 });
-const BattleRoom = mongoose.model("BattleRoom", battleRoomSchema);
+const BattleRoom = mongoose.model("Battlerooms", battleRoomSchema);
 
 const problemSchema = new mongoose.Schema({
     title: String,
