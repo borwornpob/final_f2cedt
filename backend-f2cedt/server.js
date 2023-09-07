@@ -40,6 +40,9 @@ const Problem = mongoose.model("Problem", problemSchema);
 
 // Register Endpoint
 app.post("/register", async (req, res) => {
+    if (await User.findOne({ name: req.body.name })) {
+        return res.status(400).send("User already exists");
+    }
     const { name } = req.body;
     const uid = Math.random().toString(36).substring(2, 10);
     const newUser = new User({ name, uid });
