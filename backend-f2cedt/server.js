@@ -182,14 +182,31 @@ app.delete("/delete-user/:uid", async (req, res) => {
     res.status(200).send("Deleted successfully");
 });
 
-mongoose
-    .connect("mongodb://localhost:27017/codingBattle", {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    .then(() => {
-        app.listen(5001, () => {
-            console.log(`Server is listening on port 5001`);
-        });
-    })
-    .catch((error) => console.log("Error connecting to MongoDB:", error));
+function connectToMongo() {
+    try {
+        mongoose
+            .connect("mongodb://mongo:27017/codingBattle", {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+            })
+            .then(() => {
+                app.listen(5001, () => {
+                    console.log(`Server is listening on port 5001`);
+                });
+            })
+            .catch((error) => {
+                console.log("Error connecting to MongoDB:", error);
+                console.log("Retrying to connect to MongoDB...");
+
+                // Wait for a few seconds before retrying to prevent immediate retries. Adjust as necessary.
+                setTimeout(connectToMongo, 5000);
+            });
+    } catch (error) {
+        console.log("Error connecting to MongoDB:", error);
+    }
+}
+
+console.log("Connecting to MongoDB...");
+
+// Initiate the connection process
+connectToMongo();
