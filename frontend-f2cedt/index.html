@@ -1,13 +1,79 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Battle</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body class="bg-gray-100 py-8">
+    <div class="container mx-auto">
+        <div>
+            <h2 class="text-2xl mb-4">Register:</h2>
+            <form id="registerForm">
+                <input type="text" id="registerName" placeholder="Name" class="border p-2 rounded">
+                <button type="submit" class="bg-blue-500 text-white p-2 rounded">Register</button>
+            </form>
+        </div>
+
+        <div class="mt-8">
+            <h2 class="text-2xl mb-4">Login:</h2>
+            <form id="loginForm">
+                <input type="text" id="loginName" placeholder="Name" class="border p-2 rounded">
+                <button type="submit" class="bg-green-500 text-white p-2 rounded">Login</button>
+            </form>
+        </div>
+
+        <div class="mt-8">
+            <h2 class="text-2xl mb-4">Active Battles:</h2>
+            <button onclick="fetchActiveBattles()" class="bg-orange-500 text-white p-2 rounded">Show Active Battles</button>
+            <ul id="activeBattlesList"></ul>
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("registerName").value;
+            try {
+                const response = await axios.post("/register", { name });
+                alert(`Registered with UID: ${response.data.uid}`);
+            } catch (err) {
+                alert(err.response.data);
+            }
+        });
+
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("loginName").value;
+            try {
+                const response = await axios.post("/login", { name });
+                alert(`Logged in with UID: ${response.data.uid}`);
+            } catch (err) {
+                alert(err.response.data);
+            }
+        });
+
+        async function fetchActiveBattles() {
+            try {
+                const response = await axios.get("/active-battles");
+                const battles = response.data;
+                const list = document.getElementById("activeBattlesList");
+                list.innerHTML = "";
+                battles.forEach(battle => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = `Room ID: ${battle.roomId}, Creator: ${battle.creator}`;
+                    list.appendChild(listItem);
+                });
+            } catch (err) {
+                alert("Failed to fetch active battles.");
+            }
+        }
+    </script>
+</body>
+
 </html>

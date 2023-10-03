@@ -200,8 +200,6 @@ function connectToMongo() {
             .catch((error) => {
                 console.log("Error connecting to MongoDB:", error);
                 console.log("Retrying to connect to MongoDB...");
-
-                // Wait for a few seconds before retrying to prevent immediate retries. Adjust as necessary.
                 setTimeout(connectToMongo, 5000);
             });
     } catch (error) {
