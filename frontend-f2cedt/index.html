@@ -7,6 +7,7 @@
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
     />
+
     <title>Coding Battle</title>
   </head>
   <body class="bg-gray-200 p-8">
@@ -26,6 +27,45 @@
         >
           Submit
         </button>
+      </div>
+
+      <!-- Navbar -->
+      <div class="w-full bg-blue-600 p-4 text-white mb-5">
+        <div class="container mx-auto flex justify-between items-center">
+          <!-- Navbar left (for logo or site title) -->
+          <div>
+            <h1 class="text-2xl font-bold">Code Battle</h1>
+          </div>
+
+          <!-- Profile Section in Navbar -->
+          <div id="profileSection">
+            <div class="relative">
+              <!-- Profile circle with initial -->
+              <div
+                id="profilePicture"
+                class="h-10 w-10 rounded-full border-2 border-white cursor-pointer flex items-center justify-center text-white bg-gray-800"
+                onclick="toggleDropdown()"
+              >
+                <span id="profileInitial"></span>
+              </div>
+
+              <!-- Dropdown -->
+              <div
+                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden"
+                id="profileDropdown"
+              >
+                <ul>
+                  <li
+                    class="p-4 hover:bg-gray-200 cursor-pointer text-black"
+                    onclick="logout()"
+                  >
+                    Logout
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- List of Problems -->
@@ -62,22 +102,7 @@
           class="border p-2 rounded mb-4 w-full"
         />
 
-        <!-- Test Cases -->
-        <div id="testCasesContainer">
-          <!-- Sample test case fields; can be duplicated with JavaScript -->
-          <div class="testCaseGroup mb-4">
-            <input
-              type="text"
-              placeholder="Test Case Input"
-              class="border p-2 rounded mb-2 w-full testCaseInput"
-            />
-            <input
-              type="text"
-              placeholder="Expected Output"
-              class="border p-2 rounded mb-2 w-full expectedOutput"
-            />
-          </div>
-        </div>
+  
         <label class="block text-gray-700 mb-2"
           >Import Test Cases (CSV format: input,expected_output):</label
         >

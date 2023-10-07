@@ -78,7 +78,7 @@ function addTestCaseFields() {
 }
 
 async function createBattle() {
-  const problemId = "some-problem-id"; 
+  const problemId = "some-problem-id";
   try {
     const response = await fetch(`${apiUrl}/create-battle`, {
       method: "POST",
@@ -233,6 +233,18 @@ function initializePage() {
   const isLoggedIn = !!localStorage.getItem("uid");
   if (isLoggedIn) {
     document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("profileSection").classList.remove("hidden");
+    const uid = localStorage.getItem("uid");
+    fetch(`${apiUrl}/get-user/${uid}`)
+      .then((response) => response.json())
+      .then((data) => {
+        // Get the first character of the name and set it to the circle div
+        const initial = data.name.charAt(0).toUpperCase();
+        document.getElementById("profileInitial").textContent = initial;
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+      });
   } else {
     document.getElementById("loginSection").classList.remove("hidden");
   }
@@ -258,12 +270,19 @@ async function registerOrLogin() {
     }
     const data = await response.json();
     localStorage.setItem("uid", data.uid);
-    initializePage(); 
+    initializePage();
   } catch (error) {
     console.error("Error during register/login:", error);
   }
 }
 
+function logout() {
+  localStorage.removeItem("uid"); // Remove user ID from local storage
+  document.getElementById("profileSection").classList.add("hidden"); // Hide profile section
+  initializePage(); // Reset the page to the initial state
+}
 
-
-
+function toggleDropdown() {
+  const dropdown = document.getElementById("profileDropdown");
+  dropdown.classList.toggle("hidden");
+}
