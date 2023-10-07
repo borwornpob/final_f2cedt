@@ -113,6 +113,18 @@ app.get("/problems", async (req, res) => {
     res.json(problems);
 });
 
+// Create Problem Endpoint
+app.post("/problems", async (req, res) => {
+    try {
+        const newProblem = new Problem(req.body);
+        await newProblem.save();
+        res.status(200).send("Problem created successfully");
+    } catch (error) {
+        res.status(500).send("Error creating the problem");
+    }
+});
+
+
 // Submit Solution
 const submitSubmission = async (code, languageId, input, expectedOutput) => {
     const judge0BaseUrl =
@@ -121,7 +133,7 @@ const submitSubmission = async (code, languageId, input, expectedOutput) => {
         source_code: code,
         language_id: languageId,
         stdin: input,
-        expected_output: expectedOutput,
+        expected_output: expectedOutput,edfs
     };
 
     try {
@@ -186,25 +198,28 @@ app.delete("/delete-user/:uid", async (req, res) => {
 });
 
 function connectToMongo() {
-    try {
-        mongoose
-            .connect("mongodb://mongo:27017/codingBattle", {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-            })
-            .then(() => {
-                app.listen(5001, () => {
-                    console.log(`Server is listening on port 5001`);
-                });
-            })
-            .catch((error) => {
-                console.log("Error connecting to MongoDB:", error);
-                console.log("Retrying to connect to MongoDB...");
-                setTimeout(connectToMongo, 5000);
-            });
-    } catch (error) {
-        console.log("Error connecting to MongoDB:", error);
-    }
+  try {
+    //ผมรู้ครับว่าไม่ควรอัพ mongo password, but who care?
+    const mongoUri =
+      "mongodb+srv://codingbt:cedtcoding@cluster0.eroiiuw.mongodb.net/";
+    mongoose
+      .connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      })
+      .then(() => {
+        app.listen(5001, () => {
+          console.log(`Server is listening on port 5001`);
+        });
+      })
+      .catch((error) => {
+        console.log("Error connecting to MongoDB Atlas:", error);
+        console.log("Retrying to connect to MongoDB Atlas...");
+        setTimeout(connectToMongo, 5000);
+      });
+  } catch (error) {
+    console.log("Error connecting to MongoDB Atlas:", error);
+  }
 }
 
 console.log("Connecting to MongoDB...");

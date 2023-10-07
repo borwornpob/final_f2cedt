@@ -1,79 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
     <title>Coding Battle</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-</head>
-
-<body class="bg-gray-100 py-8">
+  </head>
+  <body class="bg-gray-200 p-8">
     <div class="container mx-auto">
-        <div>
-            <h2 class="text-2xl mb-4">Register:</h2>
-            <form id="registerForm">
-                <input type="text" id="registerName" placeholder="Name" class="border p-2 rounded">
-                <button type="submit" class="bg-blue-500 text-white p-2 rounded">Register</button>
-            </form>
-        </div>
+      <!-- Register/Login -->
+      <div id="loginSection" class="bg-white p-8 rounded-lg shadow-md mb-6">
+        <h2 class="text-2xl mb-4">Register/Login</h2>
+        <input
+          id="username"
+          type="text"
+          placeholder="Enter Name"
+          class="border p-2 rounded mb-4 w-full"
+        />
+        <button
+          onclick="registerOrLogin()"
+          class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          Submit
+        </button>
+      </div>
 
-        <div class="mt-8">
-            <h2 class="text-2xl mb-4">Login:</h2>
-            <form id="loginForm">
-                <input type="text" id="loginName" placeholder="Name" class="border p-2 rounded">
-                <button type="submit" class="bg-green-500 text-white p-2 rounded">Login</button>
-            </form>
-        </div>
+      <!-- List of Problems -->
+      <div
+        id="problemsSection"
+        class="bg-white p-8 rounded-lg shadow-md mb-6 hidden"
+      >
+        <h2 class="text-2xl mb-4">Available Problems</h2>
+        <ul id="problemsList"></ul>
+      </div>
 
-        <div class="mt-8">
-            <h2 class="text-2xl mb-4">Active Battles:</h2>
-            <button onclick="fetchActiveBattles()" class="bg-orange-500 text-white p-2 rounded">Show Active Battles</button>
-            <ul id="activeBattlesList"></ul>
-        </div>
+      <!-- Create a Problem -->
+      <div
+        id="createProblemSection"
+        class="bg-white p-8 rounded-lg shadow-md mb-6"
+      >
+        <h2 class="text-2xl mb-4">Create a New Problem</h2>
+        <input
+          id="problemTitle"
+          type="text"
+          placeholder="Problem Title"
+          class="border p-2 rounded mb-4 w-full"
+        />
+        <textarea
+          id="problemDescription"
+          rows="5"
+          class="border p-2 rounded mb-4 w-full"
+          placeholder="Problem Description"
+        ></textarea>
+        <input
+          id="problemDifficulty"
+          type="text"
+          placeholder="Difficulty (e.g., easy, medium, hard)"
+          class="border p-2 rounded mb-4 w-full"
+        />
 
+        <!-- Test Cases -->
+        <div id="testCasesContainer">
+          <!-- Sample test case fields; can be duplicated with JavaScript -->
+          <div class="testCaseGroup mb-4">
+            <input
+              type="text"
+              placeholder="Test Case Input"
+              class="border p-2 rounded mb-2 w-full testCaseInput"
+            />
+            <input
+              type="text"
+              placeholder="Expected Output"
+              class="border p-2 rounded mb-2 w-full expectedOutput"
+            />
+          </div>
+        </div>
+        <label class="block text-gray-700 mb-2"
+          >Import Test Cases (CSV format: input,expected_output):</label
+        >
+        <input
+          type="file"
+          id="csvUpload"
+          class="border p-2 rounded mb-4 w-full"
+        />
+        <button
+          onclick="parseCSV()"
+          class="bg-gray-400 text-white px-4 py-1 rounded mb-4 hover:bg-gray-500"
+        >
+          Parse CSV
+        </button>
+
+        <button
+          onclick="createProblem()"
+          class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          Create Problem
+        </button>
+      </div>
+
+      <!-- Create a Battle -->
+      <div
+        id="createBattleSection"
+        class="bg-white p-8 rounded-lg shadow-md mb-6 hidden"
+      >
+        <h2 class="text-2xl mb-4">Create a Battle</h2>
+        <button
+          onclick="createBattle()"
+          class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          Create
+        </button>
+        <!-- ... -->
+
+        <!-- ... -->
+      </div>
+
+      <!-- Join a Battle -->
+      <div
+        id="joinBattleSection"
+        class="bg-white p-8 rounded-lg shadow-md mb-6 hidden"
+      >
+        <h2 class="text-2xl mb-4">Join a Battle</h2>
+        <input
+          id="battleRoomId"
+          type="text"
+          placeholder="Enter Battle Room ID"
+          class="border p-2 rounded mb-4 w-full"
+        />
+        <button
+          onclick="joinBattle()"
+          class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          Join
+        </button>
+      </div>
+
+      <!-- Submit a Solution -->
+      <div
+        id="solutionSection"
+        class="bg-white p-8 rounded-lg shadow-md mb-6 hidden"
+      >
+        <h2 class="text-2xl mb-4">Submit Your Solution</h2>
+        <textarea
+          id="solutionInput"
+          rows="10"
+          class="border p-2 rounded mb-4 w-full"
+          placeholder="Enter your code here"
+        ></textarea>
+        <button
+          onclick="submitSolution()"
+          class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          Submit Solution
+        </button>
+      </div>
     </div>
 
-    <script>
-        document.getElementById("registerForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const name = document.getElementById("registerName").value;
-            try {
-                const response = await axios.post("/register", { name });
-                alert(`Registered with UID: ${response.data.uid}`);
-            } catch (err) {
-                alert(err.response.data);
-            }
-        });
-
-        document.getElementById("loginForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const name = document.getElementById("loginName").value;
-            try {
-                const response = await axios.post("/login", { name });
-                alert(`Logged in with UID: ${response.data.uid}`);
-            } catch (err) {
-                alert(err.response.data);
-            }
-        });
-
-        async function fetchActiveBattles() {
-            try {
-                const response = await axios.get("/active-battles");
-                const battles = response.data;
-                const list = document.getElementById("activeBattlesList");
-                list.innerHTML = "";
-                battles.forEach(battle => {
-                    const listItem = document.createElement("li");
-                    listItem.textContent = `Room ID: ${battle.roomId}, Creator: ${battle.creator}`;
-                    list.appendChild(listItem);
-                });
-            } catch (err) {
-                alert("Failed to fetch active battles.");
-            }
-        }
-    </script>
-</body>
-
+    <script src="frontend.js"></script>
+  </body>
 </html>
