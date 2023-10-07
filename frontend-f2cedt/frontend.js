@@ -230,27 +230,52 @@ function extractTestCasesFromCSV(csvData) {
 }
 
 function initializePage() {
-  const isLoggedIn = !!localStorage.getItem("uid");
-  if (isLoggedIn) {
-    document.getElementById("loginSection").classList.add("hidden");
-    document.getElementById("profileSection").classList.remove("hidden");
-    const uid = localStorage.getItem("uid");
-    fetch(`${apiUrl}/get-user/${uid}`)
-      .then((response) => response.json())
-      .then((data) => {
-        // Get the first character of the name and set it to the circle div
-        const initial = data.name.charAt(0).toUpperCase();
-        document.getElementById("profileInitial").textContent = initial;
-      })
-      .catch((error) => {
-        console.error("Error fetching user data:", error);
-      });
-  } else {
-    document.getElementById("loginSection").classList.remove("hidden");
-  }
+    const isLoggedIn = !!localStorage.getItem("uid");
+    if (isLoggedIn) {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("profileSection").classList.remove("hidden");
+        const uid = localStorage.getItem("uid");
+        fetch(`${apiUrl}/get-user/${uid}`)
+            .then((response) => response.json())
+            .then((data) => {
+                document.getElementById("profileName").textContent = data.name;
+                const initial = data.name.charAt(0).toUpperCase();
+                document.getElementById("profileInitial").textContent = initial;
+            })
+            .catch((error) => {
+                console.error("Error fetching user data:", error);
+            });
+    } else {
+        // Ensure that if not logged in, the profile section is hidden
+        document.getElementById("loginSection").classList.remove("hidden");
+        document.getElementById("profileSection").classList.add("hidden");
+    }
+}
+function initializePage() {
+    const isLoggedIn = !!localStorage.getItem("uid");
+    if (isLoggedIn) {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("profileSection").classList.remove("hidden");
+        const uid = localStorage.getItem("uid");
+        fetch(`${apiUrl}/get-user/${uid}`)
+            .then((response) => response.json())
+            .then((data) => {
+                document.getElementById("profileName").textContent = data.name;
+                const initial = data.name.charAt(0).toUpperCase();
+                document.getElementById("profileInitial").textContent = initial;
+            })
+            .catch((error) => {
+                console.error("Error fetching user data:", error);
+            });
+    } else {
+        document.getElementById("loginSection").classList.remove("hidden");
+        document.getElementById("profileSection").classList.add("hidden");
+    }
 }
 
+
 document.addEventListener("DOMContentLoaded", initializePage);
+
 
 async function registerOrLogin() {
   const name = document.getElementById("username").value;
@@ -277,12 +302,31 @@ async function registerOrLogin() {
 }
 
 function logout() {
-  localStorage.removeItem("uid"); // Remove user ID from local storage
-  document.getElementById("profileSection").classList.add("hidden"); // Hide profile section
-  initializePage(); // Reset the page to the initial state
+  localStorage.removeItem("uid");
+  // Redirect to the main page or refresh the page
+  location.reload();
 }
 
-function toggleDropdown() {
+
+function toggleDropdown(event) {
   const dropdown = document.getElementById("profileDropdown");
-  dropdown.classList.toggle("hidden");
+  if (dropdown.classList.contains("hidden")) {
+    dropdown.classList.remove("hidden");
+  } else {
+    dropdown.classList.add("hidden");
+  }
+  event.stopPropagation();
 }
+
+
+document.addEventListener("click", function (event) {
+  const dropdown = document.getElementById("profileDropdown");
+  const profilePicture = document.getElementById("profilePicture");
+  if (
+    !profilePicture.contains(event.target) &&
+    !dropdown.contains(event.target)
+  ) {
+    dropdown.classList.add("hidden");
+  }
+});
+

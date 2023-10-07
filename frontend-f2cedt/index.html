@@ -32,15 +32,12 @@
       <!-- Navbar -->
       <div class="w-full bg-blue-600 p-4 text-white mb-5">
         <div class="container mx-auto flex justify-between items-center">
-          <!-- Navbar left (for logo or site title) -->
           <div>
             <h1 class="text-2xl font-bold">Code Battle</h1>
           </div>
-
-          <!-- Profile Section in Navbar -->
           <div id="profileSection">
-            <div class="relative">
-              <!-- Profile circle with initial -->
+            <div class="relative flex items-center">
+              <span id="profileName" class="mr-2 text-white font-bold"></span>
               <div
                 id="profilePicture"
                 class="h-10 w-10 rounded-full border-2 border-white cursor-pointer flex items-center justify-center text-white bg-gray-800"
@@ -51,8 +48,9 @@
 
               <!-- Dropdown -->
               <div
-                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden"
+                class="absolute top-full mt-5 right-0 w-48 bg-white rounded-md shadow-lg hidden"
                 id="profileDropdown"
+                style="z-index: 1"
               >
                 <ul>
                   <li
@@ -102,7 +100,6 @@
           class="border p-2 rounded mb-4 w-full"
         />
 
-  
         <label class="block text-gray-700 mb-2"
           >Import Test Cases (CSV format: input,expected_output):</label
         >
