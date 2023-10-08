@@ -19,28 +19,56 @@ async function registerOrLogin() {
     const data = await response.json();
     localStorage.setItem("uid", data.uid);
     document.getElementById("loginSection").classList.add("hidden");
-    document.getElementById("problemsSection").classList.remove("hidden");
     fetchProblems();
   } catch (error) {
     console.error("Error during register/login:", error);
   }
 }
 
-async function fetchProblems() {
-  try {
-    const response = await fetch(`${apiUrl}/problems`);
-    const problems = await response.json();
-    const problemsList = document.getElementById("problemsList");
-    problemsList.innerHTML = "";
-    problems.forEach((problem) => {
-      const listItem = document.createElement("li");
-      listItem.innerHTML = `<a href="#" class="text-blue-500 hover:underline">${problem.title}</a>`;
-      problemsList.appendChild(listItem);
+function fetchProblems() {
+  fetch(`${apiUrl}/problems`)
+    .then((response) => response.json())
+    .then((problems) => {
+      const problemsList = document.getElementById("problemsList");
+      problemsList.innerHTML = ""; // Clear the previous list
+
+      if (problems.length === 0) {
+        problemsList.innerHTML =
+          "<tr><td colspan='2' class='text-center border px-4 py-2'>No problems available at the moment.</td></tr>";
+      } else {
+        problems.forEach((problem) => {
+          const tr = document.createElement("tr");
+
+          const tdTitle = document.createElement("td");
+          tdTitle.className = "border px-4 py-2";
+          tdTitle.textContent = problem.title;
+
+          const tdActions = document.createElement("td");
+          tdActions.className = "border px-4 py-2";
+
+          const viewBtn = document.createElement("button");
+          viewBtn.textContent = "View Problem";
+          viewBtn.className =
+            "bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded";
+          viewBtn.onclick = function () {
+            viewProblem(problem.id); // Assuming your problem object has an 'id' field
+          };
+
+          tdActions.appendChild(viewBtn);
+
+          tr.appendChild(tdTitle);
+          tr.appendChild(tdActions);
+          problemsList.appendChild(tr);
+        });
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching problems:", error);
     });
-  } catch (error) {
-    console.error("Error fetching problems:", error);
-  }
 }
+
+// Call the function when the page loads:
+document.addEventListener("DOMContentLoaded", fetchProblems);
 
 function addTestCaseFields() {
   const container = document.getElementById("testCasesContainer");
@@ -230,52 +258,50 @@ function extractTestCasesFromCSV(csvData) {
 }
 
 function initializePage() {
-    const isLoggedIn = !!localStorage.getItem("uid");
-    if (isLoggedIn) {
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("profileSection").classList.remove("hidden");
-        const uid = localStorage.getItem("uid");
-        fetch(`${apiUrl}/get-user/${uid}`)
-            .then((response) => response.json())
-            .then((data) => {
-                document.getElementById("profileName").textContent = data.name;
-                const initial = data.name.charAt(0).toUpperCase();
-                document.getElementById("profileInitial").textContent = initial;
-            })
-            .catch((error) => {
-                console.error("Error fetching user data:", error);
-            });
-    } else {
-        // Ensure that if not logged in, the profile section is hidden
-        document.getElementById("loginSection").classList.remove("hidden");
-        document.getElementById("profileSection").classList.add("hidden");
-    }
+  const isLoggedIn = !!localStorage.getItem("uid");
+  if (isLoggedIn) {
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("profileSection").classList.remove("hidden");
+    const uid = localStorage.getItem("uid");
+    fetch(`${apiUrl}/get-user/${uid}`)
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById("profileName").textContent = data.name;
+        const initial = data.name.charAt(0).toUpperCase();
+        document.getElementById("profileInitial").textContent = initial;
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+      });
+  } else {
+    // Ensure that if not logged in, the profile section is hidden
+    document.getElementById("loginSection").classList.remove("hidden");
+    document.getElementById("profileSection").classList.add("hidden");
+  }
 }
 function initializePage() {
-    const isLoggedIn = !!localStorage.getItem("uid");
-    if (isLoggedIn) {
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("profileSection").classList.remove("hidden");
-        const uid = localStorage.getItem("uid");
-        fetch(`${apiUrl}/get-user/${uid}`)
-            .then((response) => response.json())
-            .then((data) => {
-                document.getElementById("profileName").textContent = data.name;
-                const initial = data.name.charAt(0).toUpperCase();
-                document.getElementById("profileInitial").textContent = initial;
-            })
-            .catch((error) => {
-                console.error("Error fetching user data:", error);
-            });
-    } else {
-        document.getElementById("loginSection").classList.remove("hidden");
-        document.getElementById("profileSection").classList.add("hidden");
-    }
+  const isLoggedIn = !!localStorage.getItem("uid");
+  if (isLoggedIn) {
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("profileSection").classList.remove("hidden");
+    const uid = localStorage.getItem("uid");
+    fetch(`${apiUrl}/get-user/${uid}`)
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById("profileName").textContent = data.name;
+        const initial = data.name.charAt(0).toUpperCase();
+        document.getElementById("profileInitial").textContent = initial;
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+      });
+  } else {
+    document.getElementById("loginSection").classList.remove("hidden");
+    document.getElementById("profileSection").classList.add("hidden");
+  }
 }
 
-
 document.addEventListener("DOMContentLoaded", initializePage);
-
 
 async function registerOrLogin() {
   const name = document.getElementById("username").value;
@@ -307,7 +333,6 @@ function logout() {
   location.reload();
 }
 
-
 function toggleDropdown(event) {
   const dropdown = document.getElementById("profileDropdown");
   if (dropdown.classList.contains("hidden")) {
@@ -317,7 +342,6 @@ function toggleDropdown(event) {
   }
   event.stopPropagation();
 }
-
 
 document.addEventListener("click", function (event) {
   const dropdown = document.getElementById("profileDropdown");
@@ -329,4 +353,3 @@ document.addEventListener("click", function (event) {
     dropdown.classList.add("hidden");
   }
 });
-
