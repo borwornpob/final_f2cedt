@@ -74,6 +74,20 @@ app.post("/create-battle", async (req, res) => {
   res.json({ roomId: newRoomId });
 });
 
+const PORT = 5500;
+app.get("/api/tasks", async (req, res) => {
+  try {
+    const response = await axios.get("https://programming.in.th/api/tasks");
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).send("Error fetching data");
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server started on http://localhost:${PORT}`);
+});
+
 // Join Battle Endpoint
 app.post("/join-battle", async (req, res) => {
   const roomIdToJoin = req.body.roomId;
@@ -161,27 +175,26 @@ const submitSubmission = async (code, languageId, input, expectedOutput) => {
 };
 
 app.post("/update-profile-picture/:uid", async (req, res) => {
-    const uid = req.params.uid;
-    const user = await User.findOne({ uid });
-    if (user) {
-        user.profilePicture = req.body.profilePicture; 
-        await user.save();
-        res.json({ success: true, message: "Profile picture updated." });
-    } else {
-        res.status(404).send("User not found");
-    }
+  const uid = req.params.uid;
+  const user = await User.findOne({ uid });
+  if (user) {
+    user.profilePicture = req.body.profilePicture;
+    await user.save();
+    res.json({ success: true, message: "Profile picture updated." });
+  } else {
+    res.status(404).send("User not found");
+  }
 });
 
 app.get("/get-user/:uid", async (req, res) => {
-    const uid = req.params.uid;
-    const user = await User.findOne({ uid });
-    if (user) {
-        res.json({ name: user.name, profilePicture: user.profilePicture });
-    } else {
-        res.status(404).send("User not found");
-    }
+  const uid = req.params.uid;
+  const user = await User.findOne({ uid });
+  if (user) {
+    res.json({ name: user.name, profilePicture: user.profilePicture });
+  } else {
+    res.status(404).send("User not found");
+  }
 });
-
 
 app.post("/submit-solution", async (req, res) => {
   const { roomId, code, languageId, problemId, name } = req.body;

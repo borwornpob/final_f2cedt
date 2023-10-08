@@ -25,12 +25,22 @@ async function registerOrLogin() {
   }
 }
 
+let currentPage = 1;
+const limit = 10;
+
+function changePage(direction) {
+  currentPage += direction;
+  fetchProblems();
+}
+
 function fetchProblems() {
-  fetch(`${apiUrl}/problems`)
+  const startIndex = (currentPage - 1) * limit;
+  fetch("http://localhost:5500/api/tasks")
     .then((response) => response.json())
-    .then((problems) => {
+    .then((allProblems) => {
+      const problems = allProblems.slice(startIndex, startIndex + limit);
       const problemsList = document.getElementById("problemsList");
-      problemsList.innerHTML = ""; // Clear the previous list
+      problemsList.innerHTML = "";
 
       if (problems.length === 0) {
         problemsList.innerHTML =
@@ -44,14 +54,14 @@ function fetchProblems() {
           tdTitle.textContent = problem.title;
 
           const tdActions = document.createElement("td");
-          tdActions.className = "border px-4 py-2";
+          tdActions.className = "border px-4 py-2 whitespace-nowrap";
 
           const viewBtn = document.createElement("button");
           viewBtn.textContent = "View Problem";
           viewBtn.className =
             "bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded";
           viewBtn.onclick = function () {
-            viewProblem(problem.id); // Assuming your problem object has an 'id' field
+            viewProblem(problem.id);
           };
 
           tdActions.appendChild(viewBtn);
@@ -59,6 +69,22 @@ function fetchProblems() {
           tr.appendChild(tdTitle);
           tr.appendChild(tdActions);
           problemsList.appendChild(tr);
+          const prevBtn = document.getElementById("prevBtn");
+          const nextBtn = document.getElementById("nextBtn");
+
+          prevBtn.disabled = currentPage === 1;
+          if (prevBtn.disabled) {
+            prevBtn.classList.add("opacity-50", "cursor-not-allowed");
+          } else {
+            prevBtn.classList.remove("opacity-50", "cursor-not-allowed");
+          }
+
+          nextBtn.disabled = allProblems.length <= currentPage * limit;
+          if (nextBtn.disabled) {
+            nextBtn.classList.add("opacity-50", "cursor-not-allowed");
+          } else {
+            nextBtn.classList.remove("opacity-50", "cursor-not-allowed");
+          }
         });
       }
     })
@@ -67,7 +93,12 @@ function fetchProblems() {
     });
 }
 
-// Call the function when the page loads:
+function viewProblem(problemId) {
+  const iframe = document.getElementById("pdfFrame");
+  iframe.src = `https://programming.in.th/api/tasks/${problemId}/statement`;
+  document.getElementById("pdfOverlay").classList.remove("hidden");
+}
+
 document.addEventListener("DOMContentLoaded", fetchProblems);
 
 function addTestCaseFields() {
@@ -279,6 +310,13 @@ function initializePage() {
     document.getElementById("profileSection").classList.add("hidden");
   }
 }
+
+function closePDFOverlay() {
+
+  document.getElementById("pdfOverlay").classList.add("hidden");
+  document.getElementById("pdfFrame").src = "";
+}
+
 function initializePage() {
   const isLoggedIn = !!localStorage.getItem("uid");
   if (isLoggedIn) {
