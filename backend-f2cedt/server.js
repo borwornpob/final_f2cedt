@@ -14,10 +14,15 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// User Schema and Model
 const userSchema = new mongoose.Schema({
   name: String,
   uid: String,
+  solvedProblems: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Problem",
+    },
+  ],
 });
 const User = mongoose.model("User", userSchema);
 
@@ -154,40 +159,31 @@ app.get("/get-user/:uid", async (req, res) => {
   }
 });
 
-const submitSubmission = async (code, language, problemId) => {
-  const judge0BaseUrl =
-    "http://127.0.0.1:2358/submissions?base64_encoded=false&wait=true";
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  const problem = await Problem.findById(problemId);
-  if (!problem) {
-    throw new Error("Problem not found");
-  }
-
+const submitSingleTestCase = async (code, language, input, output) => {
+  const judge0Url =
+    "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true";
   const languageId = getJudge0LanguageId(language);
-  const results = await Promise.all(
-    problem.testCases.map(async (testCase) => {
-      const data = {
-        source_code: code,
-        language_id: languageId,
-        stdin: testCase.input,
-        expected_output: testCase.output,
-      };
 
-      try {
-        const response = await axios.post(judge0BaseUrl, data, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        console.log("Judge0 Response:", response.data);
-        return response.data?.status?.description === "Accepted"; // Check if the solution was accepted
-      } catch (error) {
-        console.error("Error in Judge0 API:", error);
-        return false; // Return false if there was an error judging the solution
-      }
-    })
-  );
-  return results;
+  const data = {
+    source_code: code,
+    language_id: languageId,
+    stdin: input,
+    expected_output: output,
+  };
+
+  const response = await axios.post(judge0Url, data, {
+    headers: {
+      "Content-Type": "application/json",
+      "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
+      "x-rapidapi-key": "93b5597ba5msh3ad84823ace9c65p1cd0bcjsn020e6e554323", 
+    },
+  });
+
+  return response.data;
 };
 
 app.post("/update-profile-picture/:uid", async (req, res) => {
@@ -213,23 +209,35 @@ app.get("/get-user/:uid", async (req, res) => {
 });
 
 app.use((req, res, next) => {
-
   next();
 });
 
 app.post("/submitsolution", async (req, res) => {
   const { code, language, problemId } = req.body;
-  try {
-    const results = await submitSubmission(code, language, problemId);
-    const allPassed = results.every(Boolean);
-    if (allPassed) {
-      res.json({ message: "All test cases passed!" });
-    } else {
-      res.json({ message: "Some test cases failed." });
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send(error.message);
+
+  const problem = await Problem.findById(problemId);
+
+  const results = [];
+  for (let testCase of problem.testCases) {
+    const result = await submitSingleTestCase(
+      code,
+      language,
+      testCase.input,
+      testCase.output
+    );
+    results.push(result);
+
+    // Wait for 1 second
+    await delay(1000);
+  }
+
+  const allPassed = results.every(
+    (res) => res.status.description === "Accepted"
+  );
+  if (allPassed) {
+    res.json({ message: "All test cases passed!" });
+  } else {
+    res.json({ message: "Some test cases failed." });
   }
 });
 

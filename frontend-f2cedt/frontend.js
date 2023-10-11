@@ -100,6 +100,7 @@ function submitCode() {
 
   const problemId = currentProblemId;
 
+  const uid = localStorage.getItem("uid"); // Get the uid from localStorage
   fetch(`${apiUrl}/submitsolution`, {
     method: "POST",
     headers: {
@@ -109,11 +110,17 @@ function submitCode() {
       code,
       language,
       problemId,
+      uid, // Add uid here
     }),
   })
     .then((response) => response.json())
     .then((data) => {
-      alert(data.message);
+      if (data.message === "All test cases passed!") {
+        document.getElementById("resultMessage").textContent = data.message;
+      } else {
+        document.getElementById("resultMessage").textContent =
+          "Some test cases failed.";
+      }
     })
     .catch((error) => {
       console.error("Error submitting the solution:", error); // Likely line 129
