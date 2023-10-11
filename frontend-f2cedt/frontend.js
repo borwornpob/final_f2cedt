@@ -24,7 +24,6 @@ async function registerOrLogin() {
     console.error("Error during register/login:", error);
   }
 }
-
 function fetchProblems() {
   fetch(`${apiUrl}/problems`)
     .then((response) => response.json())
@@ -51,8 +50,10 @@ function fetchProblems() {
           viewBtn.className =
             "bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded";
           viewBtn.onclick = function () {
-            viewProblem(problem.id); // Assuming your problem object has an 'id' field
+            viewProblem(problem._id); // Using problem._id instead of problem.id
           };
+
+          console.log("Problem ID:", problem._id); // Log problem._id to the console
 
           tdActions.appendChild(viewBtn);
 
@@ -65,6 +66,59 @@ function fetchProblems() {
     .catch((error) => {
       console.error("Error fetching problems:", error);
     });
+}
+
+function viewProblem(problemId) {
+  fetch(`${apiUrl}/problems/${problemId}`)
+    .then((response) => response.json())
+    .then((problem) => {
+      document.getElementById("problemTitlePopup").textContent = problem.title;
+      document.getElementById("problemDescriptionPopup").innerHTML =
+        problem.description;
+
+      // Show the popup
+      document.getElementById("problemPopup").classList.remove("hidden");
+    })
+    .catch((error) => {
+      console.error("Error fetching problem:", error);
+    });
+}
+
+function closeProblemPopup() {
+  document.getElementById("problemPopup").classList.add("hidden");
+}
+
+function submitCode() {
+  const code = document.getElementById("codeEditor").value;
+  const language = document.getElementById("languageSelector").value;
+
+  // Example of sending code to the server.
+  fetch(`${apiUrl}/submit-code`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      code,
+      language,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      // Handle response from server. E.g., show a message based on success or failure.
+      if (data.success) {
+        alert("Code submitted successfully!");
+      } else {
+        alert("Code submission failed: " + data.error);
+      }
+    })
+    .catch((err) => {
+      console.error("Error submitting code:", err);
+    });
+}
+
+function closeModal() {
+  document.getElementById("problemModal").classList.add("hidden");
 }
 
 // Call the function when the page loads:
@@ -124,46 +178,76 @@ async function createBattle() {
 }
 
 async function createProblem() {
-  const title = document.getElementById("problemTitle").value;
-  const descriptionHTML = quill.root.innerHTML;
-  document.getElementById("problemDescriptionHidden").value = descriptionHTML;
-  const difficulty = document.getElementById("problemDifficulty").value;
+  const titleElement = document.getElementById("problemTitle");
+  if (!titleElement.value.trim()) {
+    alert("Please enter a problem title.");
+    return;
+  }
 
-  const testCasesInputs = document.querySelectorAll(".testCaseInput");
-  const expectedOutputs = document.querySelectorAll(".expectedOutput");
+  const descriptionContent = quill.getText().trim();
+  if (!descriptionContent) {
+    alert("Please enter a problem description.");
+    return;
+  }
 
-  let testCases = [];
-  testCasesInputs.forEach((input, index) => {
-    testCases.push({
-      input: input.value,
-      output: expectedOutputs[index].value,
-    });
+  const csvUpload = document.getElementById("csvUpload");
+  if (!csvUpload.files.length) {
+    alert("Please upload a CSV file.");
+    return;
+  }
+
+  const file = csvUpload.files[0];
+  const reader = new FileReader();
+  reader.onload = async function (event) {
+    const csvData = event.target.result;
+    const testCases = processCSV(csvData);
+
+    const title = document.getElementById("problemTitle").value;
+    const descriptionHTML = quill.root.innerHTML;
+    const difficulty = document.getElementById("problemDifficulty").value;
+
+    try {
+      const response = await fetch(`${apiUrl}/problems`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description: descriptionHTML,
+          difficulty,
+          testCases,
+        }),
+      });
+
+      if (response.ok) {
+        console.log("Problem created successfully!");
+        document.getElementById("problemTitle").value = "";
+        document.getElementById("problemDifficulty").value = "";
+        quill.setText("");
+        document.getElementById("csvUpload").value = ""; // Clear the file input
+
+        alert("Problem created successfully!");
+
+        fetchProblems(); // Refresh the list of problems
+      } else {
+        console.error("Error creating the problem:", await response.text());
+      }
+    } catch (error) {
+      console.error("Error during problem creation:", error);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function processCSV(csvData) {
+  const rows = csvData.split("\n").filter((row) => row.trim().length > 0);
+  const testCases = [];
+
+  rows.forEach((row) => {
+    const [input, expectedOutput] = row.split(",").map((value) => value.trim());
+    testCases.push({ input, output: expectedOutput });
   });
 
-  try {
-    const response = await fetch(`${apiUrl}/problems`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        description: descriptionHTML,
-        difficulty,
-        testCases,
-      }),
-    });
-    if (response.ok) {
-      console.log("Problem created successfully!");
-      alert("Problem created successfully!");
-      document.getElementById("problemForm").reset();
-      quill.setText(""); // This sets the Quill editor content to an empty string
-
-      fetchProblems();
-    } else {
-      console.error("Error creating the problem:", await response.text());
-    }
-  } catch (error) {
-    console.error("Error during problem creation:", error);
-  }
+  return testCases;
 }
 
 async function joinBattle() {
@@ -364,4 +448,20 @@ document.addEventListener("click", function (event) {
   ) {
     dropdown.classList.add("hidden");
   }
+});
+
+function processCSV(csvData) {
+  const rows = csvData.split("\n").filter((row) => row.trim().length > 0);
+  const testCases = [];
+
+  rows.forEach((row) => {
+    const [input, expectedOutput] = row.split(",").map((value) => value.trim());
+    testCases.push([input, expectedOutput]);
+  });
+
+  return testCases;
+}
+
+document.getElementById("closePopupBtn").addEventListener("click", function () {
+  document.getElementById("problemPopup").classList.add("hidden");
 });
