@@ -4,6 +4,12 @@ const mongoose = require("mongoose");
 const axios = require("axios");
 require("dotenv").config();
 
+const createDOMPurify = require("dompurify");
+const { JSDOM } = require("jsdom");
+
+const window = new JSDOM("").window;
+const DOMPurify = createDOMPurify(window);
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -116,7 +122,14 @@ app.get("/problems", async (req, res) => {
 // Create Problem Endpoint
 app.post("/problems", async (req, res) => {
   try {
-    const newProblem = new Problem(req.body);
+    const sanitizedDescription = DOMPurify.sanitize(req.body.description);
+
+    const newProblem = new Problem({
+      title: req.body.title,
+      description: sanitizedDescription,
+      difficulty: req.body.difficulty,
+      testCases: req.body.testCases,
+    });
     await newProblem.save();
     res.status(200).send("Problem created successfully");
   } catch (error) {
@@ -161,27 +174,26 @@ const submitSubmission = async (code, languageId, input, expectedOutput) => {
 };
 
 app.post("/update-profile-picture/:uid", async (req, res) => {
-    const uid = req.params.uid;
-    const user = await User.findOne({ uid });
-    if (user) {
-        user.profilePicture = req.body.profilePicture; 
-        await user.save();
-        res.json({ success: true, message: "Profile picture updated." });
-    } else {
-        res.status(404).send("User not found");
-    }
+  const uid = req.params.uid;
+  const user = await User.findOne({ uid });
+  if (user) {
+    user.profilePicture = req.body.profilePicture;
+    await user.save();
+    res.json({ success: true, message: "Profile picture updated." });
+  } else {
+    res.status(404).send("User not found");
+  }
 });
 
 app.get("/get-user/:uid", async (req, res) => {
-    const uid = req.params.uid;
-    const user = await User.findOne({ uid });
-    if (user) {
-        res.json({ name: user.name, profilePicture: user.profilePicture });
-    } else {
-        res.status(404).send("User not found");
-    }
+  const uid = req.params.uid;
+  const user = await User.findOne({ uid });
+  if (user) {
+    res.json({ name: user.name, profilePicture: user.profilePicture });
+  } else {
+    res.status(404).send("User not found");
+  }
 });
-
 
 app.post("/submit-solution", async (req, res) => {
   const { roomId, code, languageId, problemId, name } = req.body;

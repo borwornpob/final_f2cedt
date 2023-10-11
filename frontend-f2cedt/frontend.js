@@ -125,7 +125,8 @@ async function createBattle() {
 
 async function createProblem() {
   const title = document.getElementById("problemTitle").value;
-  const description = document.getElementById("problemDescription").value;
+  const descriptionHTML = quill.root.innerHTML;
+  document.getElementById("problemDescriptionHidden").value = descriptionHTML;
   const difficulty = document.getElementById("problemDifficulty").value;
 
   const testCasesInputs = document.querySelectorAll(".testCaseInput");
@@ -145,14 +146,18 @@ async function createProblem() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title,
-        description,
+        description: descriptionHTML,
         difficulty,
         testCases,
       }),
     });
     if (response.ok) {
       console.log("Problem created successfully!");
-      fetchProblems(); // Refresh the list of problems
+      alert("Problem created successfully!");
+      document.getElementById("problemForm").reset();
+      quill.setText(""); // This sets the Quill editor content to an empty string
+
+      fetchProblems();
     } else {
       console.error("Error creating the problem:", await response.text());
     }
@@ -302,6 +307,13 @@ function initializePage() {
 }
 
 document.addEventListener("DOMContentLoaded", initializePage);
+document.addEventListener("DOMContentLoaded", function () {
+  quill = new Quill("#editor", {
+    theme: "snow",
+  });
+  fetchProblems();
+  initializePage();
+});
 
 async function registerOrLogin() {
   const name = document.getElementById("username").value;
