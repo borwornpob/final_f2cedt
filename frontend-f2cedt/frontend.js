@@ -68,6 +68,8 @@ function fetchProblems() {
     });
 }
 
+let currentProblemId = null;
+
 function viewProblem(problemId) {
   fetch(`${apiUrl}/problems/${problemId}`)
     .then((response) => response.json())
@@ -75,9 +77,8 @@ function viewProblem(problemId) {
       document.getElementById("problemTitlePopup").textContent = problem.title;
       document.getElementById("problemDescriptionPopup").innerHTML =
         problem.description;
-
-      // Show the popup
       document.getElementById("problemPopup").classList.remove("hidden");
+      currentProblemId = problem._id;
     })
     .catch((error) => {
       console.error("Error fetching problem:", error);
@@ -89,11 +90,22 @@ function closeProblemPopup() {
 }
 
 function submitCode() {
-  const code = document.getElementById("codeEditor").value;
-  const language = document.getElementById("languageSelector").value;
+  const codeEditor = document.getElementById("codeEditor");
+  const languageSelector = document.getElementById("languageSelector");
 
-  // Example of sending code to the server.
-  fetch(`${apiUrl}/submit-code`, {
+  const code = codeEditor.value;
+  const language = languageSelector.value;
+
+  if (!currentProblemId) {
+    console.error("No problem selected.");
+    return;
+  }
+
+  const problemId = currentProblemId;
+  
+  console.log("Submitting solution for problemId:", problemId);
+
+  fetch(`${apiUrl}/submitsolution`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -101,19 +113,16 @@ function submitCode() {
     body: JSON.stringify({
       code,
       language,
+      problemId,
     }),
   })
     .then((response) => response.json())
     .then((data) => {
-      // Handle response from server. E.g., show a message based on success or failure.
-      if (data.success) {
-        alert("Code submitted successfully!");
-      } else {
-        alert("Code submission failed: " + data.error);
-      }
+      alert(data.message); // Alert the user if the test cases passed or not
     })
-    .catch((err) => {
-      console.error("Error submitting code:", err);
+    .catch((error) => {
+      console.error("Error submitting the solution:", error);
+      alert("There was an error submitting the solution.");
     });
 }
 
@@ -121,61 +130,7 @@ function closeModal() {
   document.getElementById("problemModal").classList.add("hidden");
 }
 
-// Call the function when the page loads:
 document.addEventListener("DOMContentLoaded", fetchProblems);
-
-function addTestCaseFields() {
-  const container = document.getElementById("testCasesContainer");
-  const testCaseGroup = document.createElement("div");
-  testCaseGroup.classList.add("testCaseGroup", "mb-4");
-
-  const testCaseInput = document.createElement("input");
-  testCaseInput.type = "text";
-  testCaseInput.placeholder = "Test Case Input";
-  testCaseInput.classList.add(
-    "border",
-    "p-2",
-    "rounded",
-    "mb-2",
-    "w-full",
-    "testCaseInput"
-  );
-
-  const expectedOutput = document.createElement("input");
-  expectedOutput.type = "text";
-  expectedOutput.placeholder = "Expected Output";
-  expectedOutput.classList.add(
-    "border",
-    "p-2",
-    "rounded",
-    "mb-2",
-    "w-full",
-    "expectedOutput"
-  );
-
-  testCaseGroup.appendChild(testCaseInput);
-  testCaseGroup.appendChild(expectedOutput);
-
-  container.appendChild(testCaseGroup);
-}
-
-async function createBattle() {
-  const problemId = "some-problem-id";
-  try {
-    const response = await fetch(`${apiUrl}/create-battle`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        problemId,
-        name: document.getElementById("username").value,
-      }),
-    });
-    const data = await response.json();
-    console.log(`Battle room created with ID: ${data.roomId}`);
-  } catch (error) {
-    console.error("Error creating battle:", error);
-  }
-}
 
 async function createProblem() {
   const titleElement = document.getElementById("problemTitle");
@@ -250,124 +205,6 @@ function processCSV(csvData) {
   return testCases;
 }
 
-async function joinBattle() {
-  const roomId = document.getElementById("battleRoomId").value;
-  try {
-    const response = await fetch(`${apiUrl}/join-battle`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        roomId,
-        name: document.getElementById("username").value,
-      }),
-    });
-    if (response.ok) {
-      console.log("Joined the battle successfully!");
-    } else {
-      console.error("Error joining the battle:", await response.text());
-    }
-  } catch (error) {
-    console.error("Error during join battle:", error);
-  }
-}
-
-async function submitSolution() {
-  const code = document.getElementById("solutionInput").value;
-  try {
-    const response = await fetch(`${apiUrl}/submit-solution`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code /* ... other fields ... */ }),
-    });
-    const result = await response.text();
-    console.log(result);
-  } catch (error) {
-    console.error("Error submitting solution:", error);
-  }
-}
-
-function parseCSV() {
-  const csvUpload = document.getElementById("csvUpload");
-  if (!csvUpload.files.length) {
-    alert("Please select a CSV file first.");
-    return;
-  }
-  const file = csvUpload.files[0];
-  const reader = new FileReader();
-
-  reader.onload = function (event) {
-    const csvData = event.target.result;
-    extractTestCasesFromCSV(csvData);
-  };
-  reader.readAsText(file);
-}
-
-function extractTestCasesFromCSV(csvData) {
-  const rows = csvData.split("\n").filter((row) => row.trim().length > 0);
-  const testCasesContainer = document.getElementById("testCasesContainer");
-  testCasesContainer.innerHTML = "";
-
-  rows.forEach((row) => {
-    const [input, output] = row.split(",").map((value) => value.trim());
-
-    const testCaseGroup = document.createElement("div");
-    testCaseGroup.classList.add("testCaseGroup", "mb-4");
-
-    const testCaseInput = document.createElement("input");
-    testCaseInput.type = "text";
-    testCaseInput.placeholder = "Test Case Input";
-    testCaseInput.classList.add(
-      "border",
-      "p-2",
-      "rounded",
-      "mb-2",
-      "w-full",
-      "testCaseInput"
-    );
-    testCaseInput.value = input;
-
-    const expectedOutput = document.createElement("input");
-    expectedOutput.type = "text";
-    expectedOutput.placeholder = "Expected Output";
-    expectedOutput.classList.add(
-      "border",
-      "p-2",
-      "rounded",
-      "mb-2",
-      "w-full",
-      "expectedOutput"
-    );
-    expectedOutput.value = output;
-
-    testCaseGroup.appendChild(testCaseInput);
-    testCaseGroup.appendChild(expectedOutput);
-
-    testCasesContainer.appendChild(testCaseGroup);
-  });
-}
-
-function initializePage() {
-  const isLoggedIn = !!localStorage.getItem("uid");
-  if (isLoggedIn) {
-    document.getElementById("loginSection").classList.add("hidden");
-    document.getElementById("profileSection").classList.remove("hidden");
-    const uid = localStorage.getItem("uid");
-    fetch(`${apiUrl}/get-user/${uid}`)
-      .then((response) => response.json())
-      .then((data) => {
-        document.getElementById("profileName").textContent = data.name;
-        const initial = data.name.charAt(0).toUpperCase();
-        document.getElementById("profileInitial").textContent = initial;
-      })
-      .catch((error) => {
-        console.error("Error fetching user data:", error);
-      });
-  } else {
-    // Ensure that if not logged in, the profile section is hidden
-    document.getElementById("loginSection").classList.remove("hidden");
-    document.getElementById("profileSection").classList.add("hidden");
-  }
-}
 function initializePage() {
   const isLoggedIn = !!localStorage.getItem("uid");
   if (isLoggedIn) {

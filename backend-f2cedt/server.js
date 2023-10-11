@@ -21,6 +21,21 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model("User", userSchema);
 
+function getJudge0LanguageId(language) {
+  switch (language) {
+    case "JavaScript":
+      return 63; // Replace with Judge0's JS ID if different
+    case "Python":
+      return 71; // Replace with Judge0's Python ID if different
+    case "Java":
+      return 62; // Replace with Judge0's Java ID if different
+    case "C++":
+      return 54; // Replace with Judge0's C++ ID if different
+    default:
+      return -1;
+  }
+}
+
 const battleRoomSchema = new mongoose.Schema({
   roomId: String,
   problemId: String, // Added this field to link a room to a problem
@@ -156,7 +171,6 @@ const submitSubmission = async (code, languageId, input, expectedOutput) => {
     language_id: languageId,
     stdin: input,
     expected_output: expectedOutput,
-    edfs,
   };
 
   try {
@@ -195,38 +209,38 @@ app.get("/get-user/:uid", async (req, res) => {
   }
 });
 
-app.post("/submit-solution", async (req, res) => {
-  const { roomId, code, languageId, problemId, name } = req.body;
+app.use((req, res, next) => {
+  console.log(`Received request: ${req.method} ${req.path}`);
+  next();
+});
+
+app.post("/submitsolution", async (req, res) => {
+  const { code, language, problemId } = req.body;
 
   const problem = await Problem.findById(problemId);
   if (!problem) {
     return res.status(404).send("Problem not found");
   }
 
-  const allTestCasesPassed = await Promise.all(
-    problem.testCases.map(async (testCase) => {
-      console.log(testCase.input, testCase.output);
-      return await submitSubmission(
-        code,
-        languageId,
-        testCase.input,
-        testCase.output
-      );
-    })
-  );
+  const languageId = getJudge0LanguageId(language);
 
-  console.log(allTestCasesPassed);
+  const results = [];
+  for (let testCase of problem.testCases) {
+    const result = await submitSubmission(
+      code,
+      languageId,
+      testCase.input,
+      testCase.output
+    );
+    results.push(result);
+  }
 
-  if (allTestCasesPassed.every((result) => result)) {
-    const battleRoom = await BattleRoom.findOne({ roomId });
-    if (!battleRoom) {
-      return res.status(404).send("Battle room not found");
-    }
-    battleRoom.active = false;
-    await battleRoom.save();
-    res.status(200).send(`${name} is the winner!`);
+  const allPassed = results.every(Boolean);
+
+  if (allPassed) {
+    res.json({ message: "All test cases passed!" });
   } else {
-    res.status(400).send("Solution did not pass all test cases");
+    res.json({ message: "Some test cases failed." });
   }
 });
 
