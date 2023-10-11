@@ -1,79 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coding Battle</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-</head>
-
-<body class="bg-gray-100 py-8">
+  </head>
+  <body class="bg-gray-200 p-8">
     <div class="container mx-auto">
-        <div>
-            <h2 class="text-2xl mb-4">Register:</h2>
-            <form id="registerForm">
-                <input type="text" id="registerName" placeholder="Name" class="border p-2 rounded">
-                <button type="submit" class="bg-blue-500 text-white p-2 rounded">Register</button>
-            </form>
-        </div>
+      <!-- Register/Login -->
+      <div id="loginSection" class="bg-white p-8 rounded-lg shadow-md mb-6">
+        <h2 class="text-2xl mb-4">Register/Login</h2>
+        <input
+          id="username"
+          type="text"
+          placeholder="Enter Name"
+          class="border p-2 rounded mb-4 w-full"
+        />
+        <button
+          onclick="registerOrLogin()"
+          class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          Submit
+        </button>
+      </div>
 
-        <div class="mt-8">
-            <h2 class="text-2xl mb-4">Login:</h2>
-            <form id="loginForm">
-                <input type="text" id="loginName" placeholder="Name" class="border p-2 rounded">
-                <button type="submit" class="bg-green-500 text-white p-2 rounded">Login</button>
-            </form>
-        </div>
+      <!-- Navbar -->
+      <div class="w-full bg-blue-600 p-4 text-white mb-5 rounded-lg">
+        <div class="container mx-auto flex justify-between items-center">
+          <div>
+            <h1 class="text-2xl font-bold">Code Battle</h1>
+          </div>
+          <div id="profileSection">
+            <div class="relative flex items-center">
+              <span id="profileName" class="mr-2 text-white font-bold"></span>
+              <div
+                id="profilePicture"
+                class="h-10 w-10 rounded-full border-2 border-white cursor-pointer flex items-center justify-center text-white bg-gray-800"
+                onclick="toggleDropdown()"
+              >
+                <span id="profileInitial"></span>
+              </div>
 
-        <div class="mt-8">
-            <h2 class="text-2xl mb-4">Active Battles:</h2>
-            <button onclick="fetchActiveBattles()" class="bg-orange-500 text-white p-2 rounded">Show Active Battles</button>
-            <ul id="activeBattlesList"></ul>
+              <!-- Dropdown -->
+              <div
+                class="absolute top-full mt-5 right-0 w-48 bg-white rounded-md shadow-lg hidden"
+                id="profileDropdown"
+                style="z-index: 1"
+              >
+                <ul>
+                  <li
+                    class="p-4 hover:bg-gray-200 cursor-pointer text-black"
+                    onclick="logout()"
+                  >
+                    Logout
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
 
+      <!-- List of Problems -->
+      <div id="problemsSection" class="bg-white p-8 rounded-lg shadow-md mb-6">
+        <h2 class="text-2xl mb-4 font-semibold">Available Problems</h2>
+        <table class="min-w-full border-collapse border">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="border px-4 py-2">Problem Title</th>
+              <th class="border px-4 py-2 w-44">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody id="problemsList">
+            <!-- Rows will be populated here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div
+        id="problemPopup"
+        class="problem-popup fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex items-center justify-center hidden z-10"
+      >
+        <!-- Start of Popup Sheet -->
+        <div
+          class="bg-white rounded-lg w-4/5 h-4/5 relative overflow-hidden shadow-lg flex"
+        >
+          <!-- Left Half - Problem Description -->
+          <div class="left-half w-1/2 p-4 overflow-y-auto">
+            <div
+              id="problemDescriptionPopup"
+              class="problem-description text-base"
+            ></div>
+          </div>
+
+          <!-- Right Half - Code and Submission -->
+          <div class="right-half w-1/2 p-4 flex flex-col">
+            <!-- Problem Title -->
+            <h2 id="problemTitlePopup" class="text-2xl font-bold mb-4"></h2>
+
+            <!-- Programming Language Selector -->
+            <div class="mb-4">
+              <select id="languageSelector" class="border py-2 px-4 rounded">
+                <!-- Example language options, add more as needed -->
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="cpp">C++</option>
+              </select>
+            </div>
+
+            <!-- Code Editor -->
+            <textarea
+              id="codeEditor"
+              class="flex-grow border p-2 rounded mb-4"
+              placeholder="Write your code here..."
+            ></textarea>
+
+            <!-- Submit Button -->
+            <button
+              onclick="submitCode()"
+              class="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 self-end"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+        <!-- Close Button -->
+        <button
+          id="closePopupBtn"
+          class="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400"
+          aria-label="Close"
+        >
+          &times;
+        </button>
+        <!-- End of Popup Sheet -->
+      </div>
+
+      <!-- Create a Problem -->
+      <div
+        id="createProblemSection"
+        class="bg-white p-8 rounded-lg shadow-md mb-6"
+      >
+        <h2 class="text-2xl mb-4">Create a New Problem</h2>
+        <input
+          id="problemTitle"
+          type="text"
+          placeholder="Problem Title"
+          class="border p-2 rounded mb-4 w-full"
+          required
+        />
+
+        <div id="editor" style="height: 200px"></div>
+        <textarea
+          id="problemDescriptionHidden"
+          name="problemDescription"
+          hidden
+        ></textarea>
+
+        <input
+          id="problemDifficulty"
+          type="text"
+          placeholder="Difficulty (e.g., easy, medium, hard)"
+          class="border p-2 rounded mb-4 w-full"
+          required
+        />
+
+        <label class="block text-gray-700 mb-2"
+          >Import Test Cases (CSV format: input,expected_output):</label
+        >
+        <input
+          type="file"
+          id="csvUpload"
+          accept=".csv"
+          class="border p-2 rounded mb-4 w-full"
+          required
+        />
+        <button
+          onclick="createProblem()"
+          class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          Create Problem
+        </button>
+      </div>
+
+      <!-- Create a Battle -->
+      <div
+        id="createBattleSection"
+        class="bg-white p-8 rounded-lg shadow-md mb-6 hidden"
+      >
+        <h2 class="text-2xl mb-4">Create a Battle</h2>
+        <button
+          onclick="createBattle()"
+          class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          Create
+        </button>
+      </div>
     </div>
 
-    <script>
-        document.getElementById("registerForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const name = document.getElementById("registerName").value;
-            try {
-                const response = await axios.post("/register", { name });
-                alert(`Registered with UID: ${response.data.uid}`);
-            } catch (err) {
-                alert(err.response.data);
-            }
-        });
-
-        document.getElementById("loginForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const name = document.getElementById("loginName").value;
-            try {
-                const response = await axios.post("/login", { name });
-                alert(`Logged in with UID: ${response.data.uid}`);
-            } catch (err) {
-                alert(err.response.data);
-            }
-        });
-
-        async function fetchActiveBattles() {
-            try {
-                const response = await axios.get("/active-battles");
-                const battles = response.data;
-                const list = document.getElementById("activeBattlesList");
-                list.innerHTML = "";
-                battles.forEach(battle => {
-                    const listItem = document.createElement("li");
-                    listItem.textContent = `Room ID: ${battle.roomId}, Creator: ${battle.creator}`;
-                    list.appendChild(listItem);
-                });
-            } catch (err) {
-                alert("Failed to fetch active battles.");
-            }
-        }
-    </script>
-</body>
-
+    <script src="frontend.js"></script>
+  </body>
 </html>
