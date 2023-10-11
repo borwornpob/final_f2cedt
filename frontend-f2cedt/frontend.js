@@ -52,9 +52,6 @@ function fetchProblems() {
           viewBtn.onclick = function () {
             viewProblem(problem._id); // Using problem._id instead of problem.id
           };
-
-          console.log("Problem ID:", problem._id); // Log problem._id to the console
-
           tdActions.appendChild(viewBtn);
 
           tr.appendChild(tdTitle);
@@ -103,8 +100,6 @@ function submitCode() {
 
   const problemId = currentProblemId;
 
-  console.log("Submitting solution for problemId:", problemId);
-
   fetch(`${apiUrl}/submitsolution`, {
     method: "POST",
     headers: {
@@ -116,19 +111,14 @@ function submitCode() {
       problemId,
     }),
   })
-  .then(response => response.json())
-  .then(data => {
-    if (data.passed) {
-      alert("All test cases passed!");
-    } else {
-      alert("Some test cases failed. Check the console for details.");
-      console.log("Grading results:", data.results);
-    }
-  })
-  .catch(error => {
-    console.error("Error submitting the solution:", error);
-    alert("There was an error submitting the solution.");
-  });
+    .then((response) => response.json())
+    .then((data) => {
+      alert(data.message);
+    })
+    .catch((error) => {
+      console.error("Error submitting the solution:", error); // Likely line 129
+      alert("There was an error submitting the solution.");
+    });
 }
 
 function closeModal() {
@@ -179,7 +169,6 @@ async function createProblem() {
       });
 
       if (response.ok) {
-        console.log("Problem created successfully!");
         document.getElementById("problemTitle").value = "";
         document.getElementById("problemDifficulty").value = "";
         quill.setText("");
@@ -291,7 +280,6 @@ function processCSV(csvData) {
 
   return testCases;
 }
-
 
 document.getElementById("closePopupBtn").addEventListener("click", function () {
   document.getElementById("problemPopup").classList.add("hidden");

@@ -24,26 +24,17 @@ const User = mongoose.model("User", userSchema);
 function getJudge0LanguageId(language) {
   switch (language) {
     case "JavaScript":
-      return 63; // Replace with Judge0's JS ID if different
+      return 63;
     case "Python":
-      return 71; // Replace with Judge0's Python ID if different
+      return 71;
     case "Java":
-      return 62; // Replace with Judge0's Java ID if different
+      return 62;
     case "C++":
-      return 54; // Replace with Judge0's C++ ID if different
+      return 54;
     default:
-      return -1;
+      return 71;
   }
 }
-
-const battleRoomSchema = new mongoose.Schema({
-  roomId: String,
-  problemId: String, // Added this field to link a room to a problem
-  creator: String,
-  opponent: String,
-  active: Boolean,
-});
-const BattleRoom = mongoose.model("Battlerooms", battleRoomSchema);
 
 const problemSchema = new mongoose.Schema({
   title: String,
@@ -57,6 +48,7 @@ const problemSchema = new mongoose.Schema({
   ],
   solution: String,
 });
+
 const Problem = mongoose.model("Problem", problemSchema);
 
 // Register Endpoint
@@ -164,16 +156,14 @@ app.get("/get-user/:uid", async (req, res) => {
 
 const submitSubmission = async (code, language, problemId) => {
   const judge0BaseUrl =
-    "http://54.175.132.186:2358/submissions?base64_encoded=false&wait=true";
-  const languageIdMapping = {
-    javascript: 29, // For example: 29 is for Node.js, change as necessary
-    python: 34, // For Python3
-  };
-  const languageId = languageIdMapping[language];
+    "http://127.0.0.1:2358/submissions?base64_encoded=false&wait=true";
 
   const problem = await Problem.findById(problemId);
-  console.log(testCase);
+  if (!problem) {
+    throw new Error("Problem not found");
+  }
 
+  const languageId = getJudge0LanguageId(language);
   const results = await Promise.all(
     problem.testCases.map(async (testCase) => {
       const data = {
@@ -183,15 +173,20 @@ const submitSubmission = async (code, language, problemId) => {
         expected_output: testCase.output,
       };
 
-      const response = await axios.post(judge0BaseUrl, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      return response.data;
+      try {
+        const response = await axios.post(judge0BaseUrl, data, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("Judge0 Response:", response.data);
+        return response.data?.status?.description === "Accepted"; // Check if the solution was accepted
+      } catch (error) {
+        console.error("Error in Judge0 API:", error);
+        return false; // Return false if there was an error judging the solution
+      }
     })
   );
-
   return results;
 };
 
@@ -218,35 +213,23 @@ app.get("/get-user/:uid", async (req, res) => {
 });
 
 app.use((req, res, next) => {
-  console.log(`Received request: ${req.method} ${req.path}`);
+
   next();
 });
 
 app.post("/submitsolution", async (req, res) => {
   const { code, language, problemId } = req.body;
-
-  const problem = await Problem.findById(problemId);
-  console.log(problemId);
-
-  const languageId = getJudge0LanguageId(language);
-
-  const results = [];
-  for (let testCase of problem.testCases) {
-    const result = await submitSubmission(
-      code,
-      languageId,
-      testCase.input,
-      testCase.output
-    );
-    results.push(result);
-  }
-
-  const allPassed = results.every(Boolean);
-
-  if (allPassed) {
-    res.json({ message: "All test cases passed!" });
-  } else {
-    res.json({ message: "Some test cases failed." });
+  try {
+    const results = await submitSubmission(code, language, problemId);
+    const allPassed = results.every(Boolean);
+    if (allPassed) {
+      res.json({ message: "All test cases passed!" });
+    } else {
+      res.json({ message: "Some test cases failed." });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send(error.message);
   }
 });
 
