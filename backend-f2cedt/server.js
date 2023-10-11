@@ -162,29 +162,37 @@ app.get("/get-user/:uid", async (req, res) => {
   }
 });
 
-// Submit Solution
-const submitSubmission = async (code, languageId, input, expectedOutput) => {
+const submitSubmission = async (code, language, problemId) => {
   const judge0BaseUrl =
     "http://54.175.132.186:2358/submissions?base64_encoded=false&wait=true";
-  const data = {
-    source_code: code,
-    language_id: languageId,
-    stdin: input,
-    expected_output: expectedOutput,
+  const languageIdMapping = {
+    javascript: 29, // For example: 29 is for Node.js, change as necessary
+    python: 34, // For Python3
   };
+  const languageId = languageIdMapping[language];
 
-  try {
-    const response = await axios.post(judge0BaseUrl, data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+  const problem = await Problem.findById(problemId);
+  console.log(testCase);
 
-    return response.data?.status?.description === "Accepted";
-  } catch (error) {
-    console.error("Error submitting the solution:", error);
-    return false;
-  }
+  const results = await Promise.all(
+    problem.testCases.map(async (testCase) => {
+      const data = {
+        source_code: code,
+        language_id: languageId,
+        stdin: testCase.input,
+        expected_output: testCase.output,
+      };
+
+      const response = await axios.post(judge0BaseUrl, data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      return response.data;
+    })
+  );
+
+  return results;
 };
 
 app.post("/update-profile-picture/:uid", async (req, res) => {
@@ -218,9 +226,7 @@ app.post("/submitsolution", async (req, res) => {
   const { code, language, problemId } = req.body;
 
   const problem = await Problem.findById(problemId);
-  if (!problem) {
-    return res.status(404).send("Problem not found");
-  }
+  console.log(problemId);
 
   const languageId = getJudge0LanguageId(language);
 

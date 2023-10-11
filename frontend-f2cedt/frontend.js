@@ -102,7 +102,7 @@ function submitCode() {
   }
 
   const problemId = currentProblemId;
-  
+
   console.log("Submitting solution for problemId:", problemId);
 
   fetch(`${apiUrl}/submitsolution`, {
@@ -116,14 +116,19 @@ function submitCode() {
       problemId,
     }),
   })
-    .then((response) => response.json())
-    .then((data) => {
-      alert(data.message); // Alert the user if the test cases passed or not
-    })
-    .catch((error) => {
-      console.error("Error submitting the solution:", error);
-      alert("There was an error submitting the solution.");
-    });
+  .then(response => response.json())
+  .then(data => {
+    if (data.passed) {
+      alert("All test cases passed!");
+    } else {
+      alert("Some test cases failed. Check the console for details.");
+      console.log("Grading results:", data.results);
+    }
+  })
+  .catch(error => {
+    console.error("Error submitting the solution:", error);
+    alert("There was an error submitting the solution.");
+  });
 }
 
 function closeModal() {
@@ -191,18 +196,6 @@ async function createProblem() {
     }
   };
   reader.readAsText(file);
-}
-
-function processCSV(csvData) {
-  const rows = csvData.split("\n").filter((row) => row.trim().length > 0);
-  const testCases = [];
-
-  rows.forEach((row) => {
-    const [input, expectedOutput] = row.split(",").map((value) => value.trim());
-    testCases.push({ input, output: expectedOutput });
-  });
-
-  return testCases;
 }
 
 function initializePage() {
@@ -293,11 +286,12 @@ function processCSV(csvData) {
 
   rows.forEach((row) => {
     const [input, expectedOutput] = row.split(",").map((value) => value.trim());
-    testCases.push([input, expectedOutput]);
+    testCases.push({ input: input, output: expectedOutput });
   });
 
   return testCases;
 }
+
 
 document.getElementById("closePopupBtn").addEventListener("click", function () {
   document.getElementById("problemPopup").classList.add("hidden");
