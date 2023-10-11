@@ -14,36 +14,32 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// User Schema and Model
 const userSchema = new mongoose.Schema({
   name: String,
   uid: String,
+  solvedProblems: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Problem",
+    },
+  ],
 });
 const User = mongoose.model("User", userSchema);
 
 function getJudge0LanguageId(language) {
   switch (language) {
     case "JavaScript":
-      return 63; // Replace with Judge0's JS ID if different
+      return 63;
     case "Python":
-      return 71; // Replace with Judge0's Python ID if different
+      return 71;
     case "Java":
-      return 62; // Replace with Judge0's Java ID if different
+      return 62;
     case "C++":
-      return 54; // Replace with Judge0's C++ ID if different
+      return 54;
     default:
-      return -1;
+      return 71;
   }
 }
-
-const battleRoomSchema = new mongoose.Schema({
-  roomId: String,
-  problemId: String, // Added this field to link a room to a problem
-  creator: String,
-  opponent: String,
-  active: Boolean,
-});
-const BattleRoom = mongoose.model("Battlerooms", battleRoomSchema);
 
 const problemSchema = new mongoose.Schema({
   title: String,
@@ -57,6 +53,7 @@ const problemSchema = new mongoose.Schema({
   ],
   solution: String,
 });
+
 const Problem = mongoose.model("Problem", problemSchema);
 
 // Register Endpoint
@@ -162,29 +159,31 @@ app.get("/get-user/:uid", async (req, res) => {
   }
 });
 
-// Submit Solution
-const submitSubmission = async (code, languageId, input, expectedOutput) => {
-  const judge0BaseUrl =
-    "http://54.175.132.186:2358/submissions?base64_encoded=false&wait=true";
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const submitSingleTestCase = async (code, language, input, output) => {
+  const judge0Url =
+    "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true";
+  const languageId = getJudge0LanguageId(language);
+
   const data = {
     source_code: code,
     language_id: languageId,
     stdin: input,
-    expected_output: expectedOutput,
+    expected_output: output,
   };
 
-  try {
-    const response = await axios.post(judge0BaseUrl, data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+  const response = await axios.post(judge0Url, data, {
+    headers: {
+      "Content-Type": "application/json",
+      "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
+      "x-rapidapi-key": "93b5597ba5msh3ad84823ace9c65p1cd0bcjsn020e6e554323", 
+    },
+  });
 
-    return response.data?.status?.description === "Accepted";
-  } catch (error) {
-    console.error("Error submitting the solution:", error);
-    return false;
-  }
+  return response.data;
 };
 
 app.post("/update-profile-picture/:uid", async (req, res) => {
@@ -210,7 +209,6 @@ app.get("/get-user/:uid", async (req, res) => {
 });
 
 app.use((req, res, next) => {
-  console.log(`Received request: ${req.method} ${req.path}`);
   next();
 });
 
@@ -218,25 +216,24 @@ app.post("/submitsolution", async (req, res) => {
   const { code, language, problemId } = req.body;
 
   const problem = await Problem.findById(problemId);
-  if (!problem) {
-    return res.status(404).send("Problem not found");
-  }
-
-  const languageId = getJudge0LanguageId(language);
 
   const results = [];
   for (let testCase of problem.testCases) {
-    const result = await submitSubmission(
+    const result = await submitSingleTestCase(
       code,
-      languageId,
+      language,
       testCase.input,
       testCase.output
     );
     results.push(result);
+
+    // Wait for 1 second
+    await delay(1000);
   }
 
-  const allPassed = results.every(Boolean);
-
+  const allPassed = results.every(
+    (res) => res.status.description === "Accepted"
+  );
   if (allPassed) {
     res.json({ message: "All test cases passed!" });
   } else {

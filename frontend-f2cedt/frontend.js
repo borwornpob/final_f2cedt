@@ -52,9 +52,6 @@ function fetchProblems() {
           viewBtn.onclick = function () {
             viewProblem(problem._id); // Using problem._id instead of problem.id
           };
-
-          console.log("Problem ID:", problem._id); // Log problem._id to the console
-
           tdActions.appendChild(viewBtn);
 
           tr.appendChild(tdTitle);
@@ -102,9 +99,8 @@ function submitCode() {
   }
 
   const problemId = currentProblemId;
-  
-  console.log("Submitting solution for problemId:", problemId);
 
+  const uid = localStorage.getItem("uid"); // Get the uid from localStorage
   fetch(`${apiUrl}/submitsolution`, {
     method: "POST",
     headers: {
@@ -114,14 +110,20 @@ function submitCode() {
       code,
       language,
       problemId,
+      uid, // Add uid here
     }),
   })
     .then((response) => response.json())
     .then((data) => {
-      alert(data.message); // Alert the user if the test cases passed or not
+      if (data.message === "All test cases passed!") {
+        document.getElementById("resultMessage").textContent = data.message;
+      } else {
+        document.getElementById("resultMessage").textContent =
+          "Some test cases failed.";
+      }
     })
     .catch((error) => {
-      console.error("Error submitting the solution:", error);
+      console.error("Error submitting the solution:", error); // Likely line 129
       alert("There was an error submitting the solution.");
     });
 }
@@ -174,7 +176,6 @@ async function createProblem() {
       });
 
       if (response.ok) {
-        console.log("Problem created successfully!");
         document.getElementById("problemTitle").value = "";
         document.getElementById("problemDifficulty").value = "";
         quill.setText("");
@@ -191,18 +192,6 @@ async function createProblem() {
     }
   };
   reader.readAsText(file);
-}
-
-function processCSV(csvData) {
-  const rows = csvData.split("\n").filter((row) => row.trim().length > 0);
-  const testCases = [];
-
-  rows.forEach((row) => {
-    const [input, expectedOutput] = row.split(",").map((value) => value.trim());
-    testCases.push({ input, output: expectedOutput });
-  });
-
-  return testCases;
 }
 
 function initializePage() {
@@ -293,7 +282,7 @@ function processCSV(csvData) {
 
   rows.forEach((row) => {
     const [input, expectedOutput] = row.split(",").map((value) => value.trim());
-    testCases.push([input, expectedOutput]);
+    testCases.push({ input: input, output: expectedOutput });
   });
 
   return testCases;
