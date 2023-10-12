@@ -165,7 +165,7 @@ function delay(ms) {
 
 const submitSingleTestCase = async (code, language, input, output) => {
   const judge0Url =
-    "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true";
+    "http://35.168.10.235:2358/submissions?base64_encoded=false&wait=true";
   const languageId = getJudge0LanguageId(language);
 
   const data = {
@@ -178,8 +178,6 @@ const submitSingleTestCase = async (code, language, input, output) => {
   const response = await axios.post(judge0Url, data, {
     headers: {
       "Content-Type": "application/json",
-      "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
-      "x-rapidapi-key": "93b5597ba5msh3ad84823ace9c65p1cd0bcjsn020e6e554323", 
     },
   });
 
@@ -231,10 +229,13 @@ app.post("/submitsolution", async (req, res) => {
     await delay(1000);
   }
 
-  const allPassed = results.every(
-    (res) => res.status.description === "Accepted"
-  );
+  const allPassed = results.every(Boolean);
   if (allPassed) {
+    const user = await User.findOne({ uid: req.body.uid });
+    if (!user.solvedProblems.includes(problemId)) {
+      user.solvedProblems.push(problemId);
+      await user.save();
+    }
     res.json({ message: "All test cases passed!" });
   } else {
     res.json({ message: "Some test cases failed." });
