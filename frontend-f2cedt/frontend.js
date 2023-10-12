@@ -231,6 +231,30 @@ document.addEventListener("DOMContentLoaded", function () {
   initializePage();
 });
 
+async function registerOrLogin() {
+  const name = document.getElementById("username").value;
+  let response;
+  try {
+    response = await fetch(`${apiUrl}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (response.status === 404) {
+      response = await fetch(`${apiUrl}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+    }
+    const data = await response.json();
+    localStorage.setItem("uid", data.uid);
+    initializePage();
+  } catch (error) {
+    console.error("Error during register/login:", error);
+  }
+}
+
 function logout() {
   localStorage.removeItem("uid");
   location.reload();
