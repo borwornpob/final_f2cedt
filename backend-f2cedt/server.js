@@ -165,7 +165,7 @@ function delay(ms) {
 
 const submitSingleTestCase = async (code, language, input, output) => {
   const judge0Url =
-    "http://ec2-184-72-210-194.compute-1.amazonaws.com:2358/submissions/?base64_encoded=false&wait=true";
+    "https://judge0-ce.p.rapidapi.com/submissions/?base64_encoded=false&wait=true";
   const languageId = getJudge0LanguageId(language);
 
   const data = {
@@ -178,6 +178,8 @@ const submitSingleTestCase = async (code, language, input, output) => {
   const response = await axios.post(judge0Url, data, {
     headers: {
       "Content-Type": "application/json",
+      "X-RapidAPI-Key": "c57af75ebemsh3be8c6f6b87ac2dp1075a4jsnac034659ff31",
+      "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
     },
   });
 
