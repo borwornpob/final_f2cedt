@@ -165,7 +165,7 @@ function delay(ms) {
 
 const submitSingleTestCase = async (code, language, input, output) => {
   const judge0Url =
-    "http://35.168.10.235:2358/submissions?base64_encoded=false&wait=true";
+    "http://ec2-184-72-210-194.compute-1.amazonaws.com:2358/submissions/?base64_encoded=false&wait=true";
   const languageId = getJudge0LanguageId(language);
 
   const data = {
@@ -229,13 +229,10 @@ app.post("/submitsolution", async (req, res) => {
     await delay(1000);
   }
 
-  const allPassed = results.every(Boolean);
+  const allPassed = results.every(
+    (res) => res.status.description === "Accepted"
+  );
   if (allPassed) {
-    const user = await User.findOne({ uid: req.body.uid });
-    if (!user.solvedProblems.includes(problemId)) {
-      user.solvedProblems.push(problemId);
-      await user.save();
-    }
     res.json({ message: "All test cases passed!" });
   } else {
     res.json({ message: "Some test cases failed." });
