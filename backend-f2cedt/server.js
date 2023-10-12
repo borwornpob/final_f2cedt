@@ -226,17 +226,13 @@ app.post("/submitsolution", async (req, res) => {
     results.push(result);
 
     // Wait for 1 second
-    await delay(700);
+    await delay(1000);
   }
 
-  const allPassed = results.every(Boolean);
+  const allPassed = results.every(
+    (res) => res.status.description === "Accepted"
+  );
   if (allPassed) {
-    // If the user passed all test cases, save this problem as solved for the user
-    const user = await User.findOne({ uid: req.body.uid });
-    if (!user.solvedProblems.includes(problemId)) {
-      user.solvedProblems.push(problemId);
-      await user.save();
-    }
     res.json({ message: "All test cases passed!" });
   } else {
     res.json({ message: "Some test cases failed." });
