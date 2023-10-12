@@ -88,6 +88,7 @@ function closeProblemPopup() {
   document.getElementById("problemPopup").classList.add("hidden");
 }
 
+
 function submitCode() {
   const codeEditor = document.getElementById("codeEditor");
   const languageSelector = document.getElementById("languageSelector");
@@ -102,7 +103,7 @@ function submitCode() {
 
   const problemId = currentProblemId;
 
-  const uid = localStorage.getItem("uid"); // Get the uid from localStorage
+  const uid = localStorage.getItem("uid");
   fetch(`${apiUrl}/submitsolution`, {
     method: "POST",
     headers: {
