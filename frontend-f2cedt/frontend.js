@@ -19,6 +19,8 @@ async function registerOrLogin() {
     const data = await response.json();
     localStorage.setItem("uid", data.uid);
     document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("problemsSection").classList.remove("hidden");
+
     fetchProblems();
   } catch (error) {
     console.error("Error during register/login:", error);
@@ -50,7 +52,9 @@ function fetchProblems() {
           viewBtn.className =
             "bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded";
           viewBtn.onclick = function () {
-            viewProblem(problem._id); // Using problem._id instead of problem.id
+            viewProblem(problem._id);
+            document.getElementById("resultMessage").textContent =
+              "No submit yet"; // Using problem._id instead of problem.id
           };
           tdActions.appendChild(viewBtn);
 
@@ -100,7 +104,7 @@ function submitCode() {
 
   const problemId = currentProblemId;
 
-  const uid = localStorage.getItem("uid"); // Get the uid from localStorage
+  const uid = localStorage.getItem("uid");
   fetch(`${apiUrl}/submitsolution`, {
     method: "POST",
     headers: {
@@ -131,7 +135,7 @@ function submitCode() {
 function closeModal() {
   document.getElementById("problemModal").classList.add("hidden");
 }
-
+document.getElementById("resultMessage").textContent = "No submit yet";
 document.addEventListener("DOMContentLoaded", fetchProblems);
 
 async function createProblem() {
@@ -199,6 +203,7 @@ function initializePage() {
   if (isLoggedIn) {
     document.getElementById("loginSection").classList.add("hidden");
     document.getElementById("profileSection").classList.remove("hidden");
+    document.getElementById("problemsSection").classList.remove("hidden");
     const uid = localStorage.getItem("uid");
     fetch(`${apiUrl}/get-user/${uid}`)
       .then((response) => response.json())
@@ -213,6 +218,7 @@ function initializePage() {
   } else {
     document.getElementById("loginSection").classList.remove("hidden");
     document.getElementById("profileSection").classList.add("hidden");
+    document.getElementById("problemsSection").classList.add("hidden");
   }
 }
 
@@ -251,7 +257,6 @@ async function registerOrLogin() {
 
 function logout() {
   localStorage.removeItem("uid");
-  // Redirect to the main page or refresh the page
   location.reload();
 }
 
