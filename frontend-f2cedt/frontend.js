@@ -19,6 +19,8 @@ async function registerOrLogin() {
     const data = await response.json();
     localStorage.setItem("uid", data.uid);
     document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("problemsSection").classList.remove("hidden");
+
     fetchProblems();
   } catch (error) {
     console.error("Error during register/login:", error);
@@ -87,7 +89,6 @@ function viewProblem(problemId) {
 function closeProblemPopup() {
   document.getElementById("problemPopup").classList.add("hidden");
 }
-
 
 function submitCode() {
   const codeEditor = document.getElementById("codeEditor");
@@ -202,6 +203,7 @@ function initializePage() {
   if (isLoggedIn) {
     document.getElementById("loginSection").classList.add("hidden");
     document.getElementById("profileSection").classList.remove("hidden");
+    document.getElementById("problemsSection").classList.remove("hidden");
     const uid = localStorage.getItem("uid");
     fetch(`${apiUrl}/get-user/${uid}`)
       .then((response) => response.json())
@@ -216,6 +218,7 @@ function initializePage() {
   } else {
     document.getElementById("loginSection").classList.remove("hidden");
     document.getElementById("profileSection").classList.add("hidden");
+    document.getElementById("problemsSection").classList.add("hidden");
   }
 }
 
@@ -228,33 +231,8 @@ document.addEventListener("DOMContentLoaded", function () {
   initializePage();
 });
 
-async function registerOrLogin() {
-  const name = document.getElementById("username").value;
-  let response;
-  try {
-    response = await fetch(`${apiUrl}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
-    });
-    if (response.status === 404) {
-      response = await fetch(`${apiUrl}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-    }
-    const data = await response.json();
-    localStorage.setItem("uid", data.uid);
-    initializePage();
-  } catch (error) {
-    console.error("Error during register/login:", error);
-  }
-}
-
 function logout() {
   localStorage.removeItem("uid");
-  // Redirect to the main page or refresh the page
   location.reload();
 }
 
