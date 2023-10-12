@@ -50,7 +50,9 @@ function fetchProblems() {
           viewBtn.className =
             "bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded";
           viewBtn.onclick = function () {
-            viewProblem(problem._id); // Using problem._id instead of problem.id
+            viewProblem(problem._id);
+            document.getElementById("resultMessage").textContent =
+              "No submit yet"; // Using problem._id instead of problem.id
           };
           tdActions.appendChild(viewBtn);
 
@@ -131,7 +133,7 @@ function submitCode() {
 function closeModal() {
   document.getElementById("problemModal").classList.add("hidden");
 }
-
+document.getElementById("resultMessage").textContent = "No submit yet";
 document.addEventListener("DOMContentLoaded", fetchProblems);
 
 async function createProblem() {
