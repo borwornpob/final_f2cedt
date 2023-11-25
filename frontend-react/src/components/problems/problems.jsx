@@ -7,6 +7,7 @@ export default function Problems({ login }) {
   const [resultMessage, setResultMessage] = useState("");
   const [problemId, setProblemId] = useState("");
   const [problems, setProblems] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     fetch(`${apiUrl}/problems`)
@@ -18,6 +19,16 @@ export default function Problems({ login }) {
         console.error("Error fetching problems:", error);
       });
   }, []);
+
+  const handleViewProblem = (problemId) => {
+    setProblemId(problemId);
+    setResultMessage("No submit yet");
+    setShowPopup(true);
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+  };
 
   const problemRows =
     problems.length === 0 ? (
@@ -35,8 +46,7 @@ export default function Problems({ login }) {
             <button
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
               onClick={() => {
-                setProblemId(problem._id);
-                setResultMessage("No submit yet");
+                handleViewProblem(problem._id);
               }}
             >
               View Problem
@@ -46,13 +56,11 @@ export default function Problems({ login }) {
       ))
     );
 
-  return (
+  return login ? (
     <>
       <div
         id="problemsSection"
-        className={
-          (!login && "hidden ") + "bg-white p-8 rounded-lg shadow-md mb-6"
-        }
+        className="bg-white p-8 rounded-lg shadow-md mb-6"
       >
         <h2 className="text-2xl mb-4 font-semibold">Available Problems</h2>
         <table className="min-w-full border-collapse border">
@@ -72,7 +80,11 @@ export default function Problems({ login }) {
       <ProblemPopup
         resultMessage={resultMessage}
         problemId={problemId}
+        isHidden={!showPopup}
+        onClose={handleClosePopup}
       ></ProblemPopup>
     </>
+  ) : (
+    <></>
   );
 }
