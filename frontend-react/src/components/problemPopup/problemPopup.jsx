@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react";
 const apiUrl = "http://localhost:5001";
+import submitCode from "./submit.js";
 
 export default function ProblemPopup({
   resultMessage,
   problemId,
-  isHidden,
+  showPopup,
   onClose,
+  handleResultMessage,
 }) {
   const [problem, setProblem] = useState({});
-  const [hidden, setHidden] = useState(isHidden);
+  const [code, setCode] = useState("");
+  const [language, setLanguage] = useState("python");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetch(`${apiUrl}/problems/${problemId}`)
@@ -21,9 +26,18 @@ export default function ProblemPopup({
       });
   }, [problemId]);
 
-  return isHidden ? (
-    <div id="problemPopup"></div>
-  ) : (
+  const handleCodeSubmit = async () => {
+    setIsLoading(true);
+    handleResultMessage("Submitting...");
+
+    const resultMessage = await submitCode(code, language, problemId);
+    setMessage(resultMessage);
+
+    setIsLoading(false);
+    handleResultMessage(resultMessage);
+  };
+
+  return showPopup ? (
     <div
       id="problemPopup"
       className={`problem-popup fixed top-0 left-0 w-full h-full 
@@ -36,9 +50,8 @@ export default function ProblemPopup({
           <div
             id="problemDescriptionPopup"
             className="problem-description text-base"
-          >
-            {problem.description}
-          </div>
+            dangerouslySetInnerHTML={{ __html: problem.description }}
+          ></div>
         </div>
 
         {/* <!-- Right Half - Code and Submission --> */}
@@ -54,7 +67,11 @@ export default function ProblemPopup({
 
           {/* <!-- Programming Language Selector --> */}
           <div className="mb-4">
-            <select id="languageSelector" className="border py-2 px-4 rounded">
+            <select
+              id="languageSelector"
+              className="border py-2 px-4 rounded"
+              onChange={(e) => setLanguage(e.target.value)}
+            >
               {/* <!-- Example language options, add more as needed --> */}
               <option value="python">Python</option>
             </select>
@@ -65,14 +82,17 @@ export default function ProblemPopup({
             id="codeEditor"
             className="flex-grow border p-2 rounded mb-4"
             placeholder="Write your code here..."
+            onChange={(e) => setCode(e.target.value)}
           ></textarea>
 
           {/* <!-- Submit Button --> */}
           <button
             //onClick="submitCode()" // need work here
             className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 self-end"
+            onClick={handleCodeSubmit}
+            disabled={isLoading}
           >
-            Submit
+            {isLoading ? "Submitted" : "Submit"}
           </button>
         </div>
       </div>
@@ -87,5 +107,7 @@ export default function ProblemPopup({
       </button>
       {/* <!-- End of Popup Sheet --> */}
     </div>
+  ) : (
+    <div id="problemPopup"></div>
   );
 }

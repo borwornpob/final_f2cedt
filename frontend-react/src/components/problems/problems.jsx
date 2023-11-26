@@ -30,6 +30,10 @@ export default function Problems({ login }) {
     setShowPopup(false);
   };
 
+  function handleResultMessage(message) {
+    setResultMessage(message);
+  }
+
   const problemRows =
     problems.length === 0 ? (
       <tr>
@@ -80,8 +84,9 @@ export default function Problems({ login }) {
       <ProblemPopup
         resultMessage={resultMessage}
         problemId={problemId}
-        isHidden={!showPopup}
+        showPopup={showPopup}
         onClose={handleClosePopup}
+        handleResultMessage={handleResultMessage}
       ></ProblemPopup>
     </>
   ) : (
