@@ -44,10 +44,12 @@ function App() {
       });
   }, [isLoggedIn]);
 
+  // call this when user logs in
   const logIn = () => {
     setIsLoggedIn(!!localStorage.getItem("uid"));
   };
 
+  // call this when user logs out
   function logOut() {
     localStorage.removeItem("uid");
     location.reload();

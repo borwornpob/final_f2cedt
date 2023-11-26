@@ -1,14 +1,10 @@
 import React, { useState } from "react";
 import ProblemPopup from "../problemPopup/problemPopup";
-import { useEffect } from "react";
-const apiUrl = "http://localhost:5001";
 
 export default function Problems({ isLoggedIn, problems }) {
   const [resultMessage, setResultMessage] = useState("");
   const [problemId, setProblemId] = useState("");
-
   const [showPopup, setShowPopup] = useState(false);
-  //const [refetch, setRefetch] = useState(false);
 
   const handleViewProblem = (problemId) => {
     setProblemId(problemId);

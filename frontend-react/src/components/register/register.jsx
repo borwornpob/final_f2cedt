@@ -29,30 +29,25 @@ export default function Register({ isLoggedIn, logIn }) {
   }
 
   const [username, setUsername] = useState("");
-  return (
-    <>
-      <div
-        id="loginSection"
-        className={
-          (isLoggedIn && "hidden ") + "bg-white p-8 rounded-lg shadow-md mb-6"
-        }
+  return isLoggedIn ? (
+    <></>
+  ) : (
+    <div id="loginSection" className={"bg-white p-8 rounded-lg shadow-md mb-6"}>
+      <h2 className="text-2xl mb-4">Register/Login</h2>
+      <input
+        id="username"
+        type="text"
+        placeholder="Enter Name"
+        className="border p-2 rounded mb-4 w-full"
+        onChange={(e) => setUsername(e.target.value)}
+        value={username}
+      />
+      <button
+        onClick={() => registerOrLogin(username)}
+        className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
       >
-        <h2 className="text-2xl mb-4">Register/Login</h2>
-        <input
-          id="username"
-          type="text"
-          placeholder="Enter Name"
-          className="border p-2 rounded mb-4 w-full"
-          onChange={(e) => setUsername(e.target.value)}
-          value={username}
-        />
-        <button
-          onClick={() => registerOrLogin(username)}
-          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-        >
-          Submit
-        </button>
-      </div>
-    </>
+        Submit
+      </button>
+    </div>
   );
 }
