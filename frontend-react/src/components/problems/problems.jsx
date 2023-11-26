@@ -3,11 +3,12 @@ import ProblemPopup from "../problemPopup/problemPopup";
 import { useEffect } from "react";
 const apiUrl = "http://localhost:5001";
 
-export default function Problems({ login }) {
+export default function Problems({ login, refetch }) {
   const [resultMessage, setResultMessage] = useState("");
   const [problemId, setProblemId] = useState("");
   const [problems, setProblems] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
+  //const [refetch, setRefetch] = useState(false);
 
   useEffect(() => {
     fetch(`${apiUrl}/problems`)
@@ -18,7 +19,7 @@ export default function Problems({ login }) {
       .catch((error) => {
         console.error("Error fetching problems:", error);
       });
-  }, []);
+  }, [refetch]);
 
   const handleViewProblem = (problemId) => {
     setProblemId(problemId);

@@ -3,9 +3,7 @@ import Problems from "../problems/problems";
 
 const apiUrl = "http://localhost:5001";
 
-export default function Register() {
-  const [login, setLogin] = useState(false);
-
+export default function Register({ isLoggedIn, logIn }) {
   async function registerOrLogin(username) {
     let response;
     try {
@@ -23,7 +21,7 @@ export default function Register() {
       }
       const data = await response.json();
       localStorage.setItem("uid", data.uid);
-      setLogin(true);
+      logIn();
       // I can remove this part right?
       //   document.getElementById("loginSection").classList.add("hidden");
 
@@ -40,7 +38,7 @@ export default function Register() {
       <div
         id="loginSection"
         className={
-          (login && "hidden ") + "bg-white p-8 rounded-lg shadow-md mb-6"
+          (isLoggedIn && "hidden ") + "bg-white p-8 rounded-lg shadow-md mb-6"
         }
       >
         <h2 className="text-2xl mb-4">Register/Login</h2>
@@ -59,7 +57,6 @@ export default function Register() {
           Submit
         </button>
       </div>
-      <Problems login={login}></Problems>
     </>
   );
 }
