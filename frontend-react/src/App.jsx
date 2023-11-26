@@ -8,9 +8,26 @@ const apiUrl = "http://localhost:5001";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("uid"));
-  const [refetch, setRefetch] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [problemsData, setProblemsData] = useState([]);
 
+  //fetch problems data
+  function fetchProblems() {
+    fetch(`${apiUrl}/problems`)
+      .then((response) => response.json())
+      .then((data) => {
+        setProblemsData(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching problems:", error);
+      });
+  }
+
+  useEffect(() => {
+    fetchProblems();
+  }, []);
+
+  // fetch user data
   useEffect(() => {
     const uid = localStorage.getItem("uid");
     if (!uid) {
@@ -26,20 +43,12 @@ function App() {
       });
   }, [isLoggedIn]);
 
-  const refetchContent = () => {
-    setRefetch(!refetch);
-  };
-
   const logIn = () => {
-    setIsLoggedIn(true);
+    setIsLoggedIn(!!localStorage.getItem("uid"));
   };
 
-  const logOut = () => {
-    setIsLoggedIn(false);
-  };
-
-  function initializeUser(d) {
-    setUserData(d);
+  function initializeUser(data) {
+    setUserData(data);
   }
 
   return (
@@ -48,10 +57,11 @@ function App() {
         initializeUser={initializeUser}
         isLoggedIn={isLoggedIn}
         logIn={logIn}
+        fetchProblems={fetchProblems}
       ></Register>
       <Navbar userData={userData}></Navbar>
-      <Problems login={isLoggedIn} refetch={refetch}></Problems>
-      <CreateProblem refetchContent={refetchContent}></CreateProblem>
+      <Problems isLoggedIn={isLoggedIn} problems={problemsData}></Problems>
+      <CreateProblem fetchProblems={fetchProblems}></CreateProblem>
     </div>
   );
 }

@@ -6,7 +6,6 @@ const apiUrl = "http://localhost:5001";
 export default function Register({ isLoggedIn, logIn }) {
   async function registerOrLogin(name) {
     let response;
-    //console.log(name);
     try {
       response = await fetch(`${apiUrl}/login`, {
         method: "POST",
@@ -22,15 +21,8 @@ export default function Register({ isLoggedIn, logIn }) {
       }
 
       const data = await response.json();
-      //console.log(`${apiUrl}/login`);
-      //console.log(data);
       localStorage.setItem("uid", data.uid);
       logIn();
-      // I can remove this part right?
-      //   document.getElementById("loginSection").classList.add("hidden");
-
-      //but I have problem with this part
-      //   document.getElementById("problemsSection").classList.remove("hidden");
     } catch (error) {
       console.error("Error during register/login:", error);
     }

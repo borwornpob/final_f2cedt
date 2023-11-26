@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 const apiUrl = "http://localhost:5001";
 import createProblem from "./createProblem.js";
 
-export default function CreateProblem({ refetchContent }) {
+export default function CreateProblem({ fetchProblems }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState(null);
@@ -32,7 +32,9 @@ export default function CreateProblem({ refetchContent }) {
     setUploading(true);
     await createProblem(title, description, files, difficulty);
     setUploading(false);
-    refetchContent();
+    setTimeout(() => {
+      fetchProblems();
+    }, 1000);
   }
 
   return (

@@ -3,23 +3,12 @@ import ProblemPopup from "../problemPopup/problemPopup";
 import { useEffect } from "react";
 const apiUrl = "http://localhost:5001";
 
-export default function Problems({ login, refetch }) {
+export default function Problems({ isLoggedIn, problems }) {
   const [resultMessage, setResultMessage] = useState("");
   const [problemId, setProblemId] = useState("");
-  const [problems, setProblems] = useState([]);
+
   const [showPopup, setShowPopup] = useState(false);
   //const [refetch, setRefetch] = useState(false);
-
-  useEffect(() => {
-    fetch(`${apiUrl}/problems`)
-      .then((response) => response.json())
-      .then((data) => {
-        setProblems(data);
-      })
-      .catch((error) => {
-        console.error("Error fetching problems:", error);
-      });
-  }, [refetch]);
 
   const handleViewProblem = (problemId) => {
     setProblemId(problemId);
@@ -35,8 +24,8 @@ export default function Problems({ login, refetch }) {
     setResultMessage(message);
   }
 
-  const problemRows =
-    problems.length === 0 ? (
+  function ProblemRows() {
+    return problems.length === 0 ? (
       <tr>
         <td colSpan="2" className="text-center border px-4 py-2">
           No problems available at the moment.
@@ -60,8 +49,9 @@ export default function Problems({ login, refetch }) {
         </tr>
       ))
     );
+  }
 
-  return login ? (
+  return isLoggedIn ? (
     <>
       <div
         id="problemsSection"
@@ -78,7 +68,7 @@ export default function Problems({ login, refetch }) {
 
           <tbody id="problemsList">
             {/* <!-- Rows will be populated here --> */}
-            {problemRows}
+            <ProblemRows></ProblemRows>
           </tbody>
         </table>
       </div>
