@@ -31,6 +31,7 @@ function App() {
   useEffect(() => {
     const uid = localStorage.getItem("uid");
     if (!uid) {
+      setUserData(null);
       return;
     }
     fetch(`${apiUrl}/get-user/${uid}`)
@@ -47,21 +48,21 @@ function App() {
     setIsLoggedIn(!!localStorage.getItem("uid"));
   };
 
-  function initializeUser(data) {
-    setUserData(data);
+  function logOut() {
+    localStorage.removeItem("uid");
+    location.reload();
+    setIsLoggedIn(!!localStorage.getItem("uid"));
   }
 
   return (
     <div className="container mx-auto">
-      <Register
-        initializeUser={initializeUser}
-        isLoggedIn={isLoggedIn}
-        logIn={logIn}
-        fetchProblems={fetchProblems}
-      ></Register>
-      <Navbar userData={userData}></Navbar>
+      <Register isLoggedIn={isLoggedIn} logIn={logIn}></Register>
+      <Navbar userData={userData} logOut={logOut}></Navbar>
       <Problems isLoggedIn={isLoggedIn} problems={problemsData}></Problems>
-      <CreateProblem fetchProblems={fetchProblems}></CreateProblem>
+      <CreateProblem
+        fetchProblems={fetchProblems}
+        problems={problemsData}
+      ></CreateProblem>
     </div>
   );
 }

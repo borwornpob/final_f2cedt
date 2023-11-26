@@ -12,8 +12,13 @@ export default async function createProblem(
     return;
   }
 
-  if (!(title || "").trim()) {
+  if (!(description || "").trim()) {
     alert("Please enter a problem description.");
+    return;
+  }
+
+  if (!(difficulty || "").trim()) {
+    alert("Please enter a problem difficulty.");
     return;
   }
 
@@ -41,14 +46,7 @@ export default async function createProblem(
       });
 
       if (response.ok) {
-        document.getElementById("problemTitle").value = "";
-        document.getElementById("problemDifficulty").value = "";
-        //quill.setText("");
-        document.getElementById("csvUpload").value = ""; // Clear the file input
-
         alert("Problem created successfully!");
-
-        //fetchProblems(); // Refresh the list of problems
       } else {
         console.error("Error creating the problem:", await response.text());
       }

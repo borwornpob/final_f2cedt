@@ -1,18 +1,10 @@
-const apiUrl = "http://localhost:5001";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-export default function Navbar({ userData }) {
+export default function Navbar({ userData, logOut }) {
   const [dropDown, setDropDown] = useState(false);
-
-  //console.log(userData.name);
 
   function toggleDropdown() {
     setDropDown(!dropDown);
-  }
-
-  function logout() {
-    localStorage.removeItem("uid");
-    location.reload();
   }
 
   return (
@@ -48,7 +40,7 @@ export default function Navbar({ userData }) {
                 <ul>
                   <li
                     className="p-4 hover:bg-gray-200 cursor-pointer text-black"
-                    onClick={logout}
+                    onClick={logOut}
                   >
                     Logout
                   </li>

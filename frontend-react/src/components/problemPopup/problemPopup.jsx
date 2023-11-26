@@ -12,7 +12,6 @@ export default function ProblemPopup({
   const [problem, setProblem] = useState({});
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("python");
-  const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -30,11 +29,9 @@ export default function ProblemPopup({
     setIsLoading(true);
     handleResultMessage("Submitting...");
 
-    const resultMessage = await submitCode(code, language, problemId);
-    setMessage(resultMessage);
-
+    const submitMessage = await submitCode(code, language, problemId);
     setIsLoading(false);
-    handleResultMessage(resultMessage);
+    handleResultMessage(submitMessage);
   };
 
   return showPopup ? (
