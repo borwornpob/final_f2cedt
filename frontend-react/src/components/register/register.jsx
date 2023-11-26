@@ -4,22 +4,26 @@ import Problems from "../problems/problems";
 const apiUrl = "http://localhost:5001";
 
 export default function Register({ isLoggedIn, logIn }) {
-  async function registerOrLogin(username) {
+  async function registerOrLogin(name) {
     let response;
+    //console.log(name);
     try {
       response = await fetch(`${apiUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ name }),
       });
       if (response.status === 404) {
         response = await fetch(`${apiUrl}/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username }),
+          body: JSON.stringify({ name }),
         });
       }
+
       const data = await response.json();
+      //console.log(`${apiUrl}/login`);
+      //console.log(data);
       localStorage.setItem("uid", data.uid);
       logIn();
       // I can remove this part right?
@@ -51,7 +55,7 @@ export default function Register({ isLoggedIn, logIn }) {
           value={username}
         />
         <button
-          onClick={() => registerOrLogin()}
+          onClick={() => registerOrLogin(username)}
           className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
         >
           Submit

@@ -1,41 +1,65 @@
+const apiUrl = "http://localhost:5001";
+import { useState, useEffect } from "react";
 
+export default function Navbar({ userData }) {
+  const [dropDown, setDropDown] = useState(false);
 
-export default function Navbar() {
-    return (
-        <div class="w-full bg-blue-600 p-4 text-white mb-5 rounded-lg">
-        <div class="container mx-auto flex justify-between items-center">
-          <div>
-            <h1 class="text-2xl font-bold">Code Battle</h1>
-          </div>
-          <div id="profileSection">
-            <div class="relative flex items-center">
-              <span id="profileName" class="mr-2 text-white font-bold"></span>
+  //console.log(userData.name);
+
+  function toggleDropdown() {
+    setDropDown(!dropDown);
+  }
+
+  function logout() {
+    localStorage.removeItem("uid");
+    location.reload();
+  }
+
+  return (
+    <div className="w-full bg-blue-600 p-4 text-white mb-5 rounded-lg">
+      <div className="container mx-auto flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Code Battle</h1>
+        </div>
+        <div id="profileSection">
+          <div className="relative flex items-center">
+            <span id="profileName" className="mr-2 text-white font-bold">
+              {!!userData && userData.name}
+            </span>
+            {!!userData && (
               <div
                 id="profilePicture"
-                class="h-10 w-10 rounded-full border-2 border-white cursor-pointer flex items-center justify-center text-white bg-gray-800"
-                onclick="toggleDropdown()"
+                className="h-10 w-10 rounded-full border-2 border-white cursor-pointer flex items-center justify-center text-white bg-gray-800"
+                onClick={() => toggleDropdown()}
               >
-                <span id="profileInitial"></span>
+                <span id="profileInitial">
+                  {!!userData && userData.name.charAt(0).toUpperCase()}
+                </span>
               </div>
+            )}
 
-              <!-- Dropdown -->
+            {/* <!-- Dropdown --> */}
+            {dropDown ? (
               <div
-                class="absolute top-full mt-5 right-0 w-48 bg-white rounded-md shadow-lg hidden"
+                className="absolute top-full mt-5 right-0 w-48 bg-white rounded-md shadow-lg"
                 id="profileDropdown"
-                style="z-index: 1"
+                style={{ zIndex: 1 }}
               >
                 <ul>
                   <li
-                    class="p-4 hover:bg-gray-200 cursor-pointer text-black"
-                    onclick="logout()"
+                    className="p-4 hover:bg-gray-200 cursor-pointer text-black"
+                    onClick={logout}
                   >
                     Logout
                   </li>
                 </ul>
               </div>
-            </div>
+            ) : (
+              <></>
+            )}
           </div>
         </div>
       </div>
-    );
+    </div>
+  );
 }
