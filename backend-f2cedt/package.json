@@ -1,7 +1,6 @@
 {
   "name": "backend-f2cedt",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon server.js",
@@ -25,5 +24,7 @@
     "node-fetch": "^3.3.2",
     "socket.io": "^4.7.2",
     "uuid": "^9.0.0"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }
